@@ -1,3 +1,9 @@
+/*
+========================================
+SERVICE UNDER MAINTENANCE
+All functionality disabled temporarily
+========================================
+
 const CENTRAL_SERVER = 'https://jace-nonpuristic-carter.ngrok-free.dev/upload';
 
 if (window.pdfjsLib) {
@@ -26,7 +32,7 @@ let currentTotalCost = 0;
 
 
 const supportMsg = `<br><div style="margin-top:6px; font-size:0.9rem; color:#ffd1d1;">
-                    যে কোনো সমস্যায় WhatsApp করুন:<br>
+                    যে কোনো সমস্যায় WhatsApp করুন:<br>
                     <strong style="font-size:1rem; color:#fff;">01771080238</strong>
                     </div>`;
 
@@ -291,7 +297,7 @@ verifyBtn.onclick = async () => {
             uploadForm.reset();
         } else {
             // 🔥 ERROR SCENARIO 2: Upload Failed
-            showMessage('❌ ফাইল আপলোড হয়নি!' + supportMsg, 'error');
+            showMessage('❌ ফাইল আপলোড হয়নি!' + supportMsg, 'error');
         }
 
     } catch (err) {
@@ -301,7 +307,7 @@ verifyBtn.onclick = async () => {
         console.error(err);
 
         // 🔥 ERROR SCENARIO 3: Server Offline / Network Error
-        showMessage('❌ সার্ভার কানেকশন পাওয়া যাচ্ছে না!' + supportMsg, 'error');
+        showMessage('❌ সার্ভার কানেকশন পাওয়া যাচ্ছে না!' + supportMsg, 'error');
     }
 };
 
@@ -310,7 +316,12 @@ function showMessage(t, type) {
     messageDiv.innerHTML = t;
     messageDiv.className = 'toast show ' + type;
 
-    // Error হলে মেসেজটি ৮ সেকেন্ড থাকবে, যাতে নাম্বার দেখা যায়
+    // Error হলে মেসেজটি ৮ সেকেন্ড থাকবে, যাতে নাম্বার দেখা যায়
     let time = type === 'error' ? 8000 : 4000;
     setTimeout(() => messageDiv.className = 'toast', time);
 }
+
+========================================
+END OF COMMENTED CODE
+========================================
+*/
