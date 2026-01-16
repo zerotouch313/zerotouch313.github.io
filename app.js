@@ -1,13 +1,16 @@
-/*
-========================================
-SERVICE UNDER MAINTENANCE
-All functionality disabled temporarily
-========================================
+// 🔥 আপনার সর্বশেষ Ngrok URL টি এখানে বসান (https সহ)
+const CENTRAL_SERVER = 'https://jace-nonpuristic-carter.ngrok-free.dev';
+const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/upload`;
 
-const CENTRAL_SERVER = 'https://jace-nonpuristic-carter.ngrok-free.dev/upload';
-
-if (window.pdfjsLib) {
+// PDF Worker Fix
+if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+} else {
+    window.addEventListener('load', () => {
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+    });
 }
 
 const fileInput = document.getElementById('fileInput');
@@ -19,16 +22,88 @@ const loading = document.getElementById('loading');
 const cancelPaymentBtn = document.getElementById('cancelPayment');
 const clearBtn = document.getElementById('clearBtn');
 const verifyBtn = document.getElementById('verifyBtn');
+const submitBtn = document.getElementById('submitBtn');
 
-
+const collectLaterInput = document.getElementById('collectLater');
+const userInfoSection = document.getElementById('userInfoSection');
 const userNameInput = document.getElementById('userName');
 const studentIdInput = document.getElementById('studentId');
 const trxIdInput = document.getElementById('trxId');
 const printerLocation = document.getElementById('printerLocation').value;
-const collectLaterInput = document.getElementById('collectLater');
+
+// Status Banner Setup
+const statusBanner = document.createElement('div');
+statusBanner.id = 'statusBanner';
+statusBanner.style.display = 'none';
+statusBanner.style.padding = '15px';
+statusBanner.style.backgroundColor = '#fee2e2';
+statusBanner.style.color = '#b91c1c';
+statusBanner.style.border = '1px solid #ef4444';
+statusBanner.style.borderRadius = '8px';
+statusBanner.style.marginBottom = '15px';
+statusBanner.style.textAlign = 'center';
+statusBanner.style.fontWeight = 'bold';
+document.querySelector('.content').insertBefore(statusBanner, uploadForm);
+
 
 let selectedFiles = [];
 let currentTotalCost = 0;
+
+// 🔥 1. FIXED PRINTER STATUS LOGIC
+async function checkSystemStatus() {
+    try {
+        const res = await fetch(`${CENTRAL_SERVER}/status/${printerLocation}`, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true',
+                'User-Agent': 'ZeroTouchWeb'
+            }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+
+            // 🔥 FIX: Printer Offline Check
+            if (data.printer_online === false) {
+                showStatusError(`
+                    ⚠️ Printer is Offline!<br>
+                    <span style="font-size: 0.9em; font-weight: normal;">Could you please check if the printer power button is on?<br>
+                    দয়া করে চেক করুন প্রিন্টারের পাওয়ার বাটন অন আছে কিনা।</span>
+                `);
+            } else {
+                hideStatusError();
+            }
+        }
+    } catch (e) {
+        // Status check skipped (Network/Server Issue) - No Error Popup
+        console.log("Status check skipped");
+    }
+}
+
+function showStatusError(msg) {
+    if (statusBanner.innerHTML !== msg) {
+        statusBanner.innerHTML = msg;
+        statusBanner.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.innerHTML = '<i class="ph ph-prohibit"></i> Service Unavailable';
+    }
+}
+
+function hideStatusError() {
+    if (statusBanner.style.display !== 'none') {
+        statusBanner.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.innerHTML = 'Proceed to Payment <i class="ph ph-arrow-right"></i>';
+    }
+}
+
+// Initial Call
+checkSystemStatus();
+// Check every 5 seconds
+setInterval(checkSystemStatus, 5000);
 
 
 const supportMsg = `<br><div style="margin-top:6px; font-size:0.9rem; color:#ffd1d1;">
@@ -37,19 +112,54 @@ const supportMsg = `<br><div style="margin-top:6px; font-size:0.9rem; color:#ffd
                     </div>`;
 
 
-collectLaterInput.addEventListener('change', updateUI);
+function toggleUserInfo() {
+    if (collectLaterInput.checked) {
+        userInfoSection.style.display = 'block';
+        userNameInput.required = true;
+        studentIdInput.required = true;
+        setTimeout(() => userNameInput.focus(), 100);
+    } else {
+        userInfoSection.style.display = 'none';
+        userNameInput.required = false;
+        studentIdInput.required = false;
+        userNameInput.value = '';
+        studentIdInput.value = '';
+    }
+    updateUI();
+}
 
+collectLaterInput.addEventListener('change', toggleUserInfo);
 
-fileInput.addEventListener('change', (e) => {
-    Array.from(e.target.files).forEach(f => {
+// 🔥 2. RESTORED COLOR ANALYSIS FEATURE
+fileInput.addEventListener('change', async (e) => {
+    let hasDocxError = false;
+
+    for (const f of Array.from(e.target.files)) {
+        if (f.name.toLowerCase().endsWith('.doc') || f.name.toLowerCase().endsWith('.docx')) {
+            hasDocxError = true;
+            continue;
+        }
+
+        const colorAnalysis = await analyzeColorCoverage(f);
+
         selectedFiles.push({
             file: f,
             copies: 1,
             range: '',
-            color: 'bw',
-            pageCount: f.name.toLowerCase().endsWith('.pdf') ? '...' : 1
+            printMode: 'bw', // Default Print Mode
+            pageCount: f.name.toLowerCase().endsWith('.pdf') ? '...' : 1,
+            colorPercentage: colorAnalysis.colorPercentage,
+            detectedPricePerPage: colorAnalysis.pricePerPage,
+            colorTier: getColorTierLabel(colorAnalysis.colorPercentage),
+            pricePerPage: 2 // Default Price
         });
-    });
+    }
+
+    if (hasDocxError) {
+        showMessage('❌ Word ফাইল সাপোর্ট করে না! দয়া করে PDF কনভার্ট করে আপলোড করুন।', 'error');
+        fileInput.value = '';
+    }
+
     estimatePageCount();
     updateUI();
 });
@@ -70,28 +180,16 @@ function updateUI() {
         const settingsDiv = document.createElement('div');
         settingsDiv.className = 'settings-row';
 
-        // Check: File ta Image kina?
         const isImage = item.file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
-
-        // Pages Input Logic
         let totalPagesInput = '';
 
         if (isImage) {
             totalPagesInput = '';
         } else if (item.file.name.toLowerCase().endsWith('.pdf')) {
-            totalPagesInput = `<div class="input-group"><label>Pages</label><input type="text" value="${item.pageCount}" disabled class="ctrl-input" style="background:#eee; width:50px;"></div>`;
-        } else {
-            totalPagesInput = `
-                <div class="input-group">
-                    <label style="color:#d32f2f;">Set Pages</label>
-                    <input type="number" min="1" value="${item.pageCount}" 
-                       onchange="updateFileSetting(${index}, 'pageCount', this.value)"
-                       class="ctrl-input" style="width:60px; border-color:#fca5a5;">
-                </div>
-            `;
+            let displayCount = item.pageCount === '...' ? '<span class="btn-spinner" style="width:12px;height:12px;border-color:#555;"></span>' : item.pageCount;
+            totalPagesInput = `<div class="input-group"><label>Pages</label><div class="ctrl-input" style="background:#eee; width:50px; padding:10px; text-align:center;">${displayCount}</div></div>`;
         }
 
-        // Range Input Logic
         let rangeInput = '';
         if (!isImage) {
             rangeInput = `
@@ -103,7 +201,7 @@ function updateUI() {
             </div>`;
         }
 
-        // HTML Generate
+        // 🔥 RESTORED UI: Color Analysis Badge & Dropdown
         settingsDiv.innerHTML = `
             ${totalPagesInput}
             ${rangeInput}
@@ -114,12 +212,18 @@ function updateUI() {
                        class="ctrl-input" style="width:50px;">
             </div>
             <div class="input-group">
-                <label>Color</label>
-                <select onchange="updateFileSetting(${index}, 'color', this.value)" 
-                        class="ctrl-select" style="${item.color === 'color' ? 'background:#dcfce7;' : ''}">
-                    <option value="bw" ${item.color === 'bw' ? 'selected' : ''}>B&W (2tk)</option>
-                    <option value="color" ${item.color === 'color' ? 'selected' : ''}>Color (3tk)</option>
+                <label>Print Mode</label>
+                <select onchange="updatePrintMode(${index}, this.value)" 
+                        class="ctrl-select" style="${item.printMode === 'color' ? 'background:#dcfce7;' : ''}">
+                    <option value="bw" ${item.printMode === 'bw' ? 'selected' : ''}>B&W (2tk)</option>
+                    <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color (Auto)</option>
                 </select>
+                ${item.printMode === 'color' ? `
+                    <div style="margin-top: 6px; padding: 8px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 8px; font-size: 0.75rem; color: #15803d; text-align: center; font-weight: 600;">
+                        ${item.colorTier} (${Math.round(item.colorPercentage)}%)<br>
+                        <span style="color: #16a34a;">${item.pricePerPage} tk/page</span>
+                    </div>
+                ` : ''}
             </div>
         `;
 
@@ -133,7 +237,6 @@ function updateUI() {
         div.appendChild(removeBtn);
         filesList.appendChild(div);
 
-        // --- COST CALCULATION ---
         let rawTotal = parseInt(item.pageCount);
         if (isNaN(rawTotal)) rawTotal = 1;
 
@@ -150,14 +253,13 @@ function updateUI() {
             estimatedPages = 1;
         }
 
-        const costPerSheet = item.color === 'bw' ? 2 : 3;
+        const costPerSheet = item.pricePerPage || 2;
         const fileCost = estimatedPages * item.copies * costPerSheet;
         item.calculatedCost = fileCost;
 
         grandTotalCost += fileCost;
     });
 
-    // Collect Later Extra Charge
     if (collectLaterInput.checked && selectedFiles.length > 0) {
         grandTotalCost += 1;
     }
@@ -173,36 +275,58 @@ window.updateFileSetting = function (index, key, value) {
     updateUI();
 };
 
+window.updatePrintMode = function (index, mode) {
+    selectedFiles[index].printMode = mode;
+    if (mode === 'bw') {
+        selectedFiles[index].pricePerPage = 2;
+    } else {
+        selectedFiles[index].pricePerPage = selectedFiles[index].detectedPricePerPage;
+    }
+    updateUI();
+};
+
 async function estimatePageCount() {
     for (let item of selectedFiles) {
         if (item.file.name.toLowerCase().endsWith('.pdf') && item.pageCount === '...') {
             try {
-                const buff = await item.file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: buff }).promise;
-                item.pageCount = pdf.numPages;
-            } catch (e) { item.pageCount = '?'; }
+                if (typeof pdfjsLib === 'undefined') {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+                if (typeof pdfjsLib !== 'undefined') {
+                    const buff = await item.file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: buff }).promise;
+                    item.pageCount = pdf.numPages;
+                } else {
+                    item.pageCount = '?';
+                }
+            } catch (e) {
+                item.pageCount = '?';
+            }
         }
     }
     updateUI();
 }
 
-// Button Actions
 clearBtn.onclick = () => { selectedFiles = []; updateUI(); };
 cancelPaymentBtn.onclick = () => paymentSection.classList.remove('show');
 
 uploadForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    if (!userNameInput.value.trim() || !studentIdInput.value.trim()) {
-        return showMessage('Please fill in your Name and ID!', 'error');
+    if (submitBtn.disabled) return;
+
+    if (collectLaterInput.checked) {
+        if (!userNameInput.value.trim() || !studentIdInput.value.trim()) {
+            return showMessage('Collect Later সিলেক্ট করলে নাম এবং আইডি দিতেই হবে!', 'error');
+        }
     }
+
     if (selectedFiles.length === 0) {
         return showMessage('Please upload at least one file!', 'error');
     }
 
     trxIdInput.value = '';
 
-    // NAGAD HIDE LOGIC
     const nagadWrapper = document.getElementById('nagadWrapper');
     const nagadMsg = document.getElementById('nagadLowAmountMsg');
 
@@ -217,7 +341,6 @@ uploadForm.addEventListener('submit', (e) => {
     paymentSection.classList.add('show');
 });
 
-// Verify & Upload Logic
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
 
@@ -228,11 +351,14 @@ verifyBtn.onclick = async () => {
     verifyBtn.innerHTML = `<div class="btn-spinner"></div> Verifying...`;
 
     try {
-        const verifyUrl = CENTRAL_SERVER.replace('/upload', '') + '/verify-payment';
+        const verifyUrl = `${CENTRAL_SERVER}/verify-payment`;
 
         const verifyRes = await fetch(verifyUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
             body: JSON.stringify({
                 trx_id: trxId,
                 amount: currentTotalCost
@@ -245,7 +371,6 @@ verifyBtn.onclick = async () => {
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = originalBtnText;
 
-            // 🔥 ERROR SCENARIO 1: Verification Failed
             if (verifyResult.error_type === 'underpayment') {
                 alert(verifyResult.message + "\n\nসমস্যা হলে যোগাযোগ করুন: 01771080238 (WhatsApp)");
             } else {
@@ -258,13 +383,15 @@ verifyBtn.onclick = async () => {
             alert(verifyResult.message);
         }
 
-        // Proceed to Upload
         verifyBtn.innerHTML = `<div class="btn-spinner"></div> Uploading...`;
         loading.classList.add('show');
 
         const formData = new FormData();
-        formData.append('userName', userNameInput.value.trim());
-        formData.append('studentId', studentIdInput.value.trim());
+        const finalUserName = collectLaterInput.checked ? userNameInput.value.trim() : 'Unknown';
+        const finalStudentId = collectLaterInput.checked ? studentIdInput.value.trim() : 'N/A';
+
+        formData.append('userName', finalUserName);
+        formData.append('studentId', finalStudentId);
         formData.append('location', printerLocation);
         formData.append('trxId', trxId);
         formData.append('totalCost', currentTotalCost);
@@ -275,28 +402,31 @@ verifyBtn.onclick = async () => {
             fileName: item.file.name,
             range: item.range,
             copies: item.copies,
-            color: item.color,
+            color: item.printMode, // Send 'bw' or 'color' correctly
             cost: item.calculatedCost || 0,
             pages: item.pageCount
         }));
         formData.append('fileSettings', JSON.stringify(settings));
 
-        const uploadRes = await fetch(CENTRAL_SERVER, { method: 'POST', body: formData });
-        const uploadResult = await uploadRes.json();
+        const uploadRes = await fetch(SERVER_UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+        });
 
         loading.classList.remove('show');
         verifyBtn.disabled = false;
         verifyBtn.innerHTML = originalBtnText;
 
         if (uploadRes.ok) {
-            showMessage(`✅ Order Verified & Sent!`, 'success');
+            // 🔥 UPDATE: Success Message Duration increased to 30 seconds (30000ms)
+            showMessage(`✅ Order Verified! প্রিন্টারে লাল আলো জ্বললে কাগজ লোড করে ব্লিঙ্ক করা বাটনটি চাপুন। অন্যথায় অপেক্ষা করুন। প্রয়োজনে WhatsApp করুন।`, 'success', 30000);
+
             selectedFiles = [];
-            collectLaterInput.checked = false; // Reset checkbox
-            updateUI();
+            collectLaterInput.checked = false;
+            toggleUserInfo();
             paymentSection.classList.remove('show');
             uploadForm.reset();
         } else {
-            // 🔥 ERROR SCENARIO 2: Upload Failed
             showMessage('❌ ফাইল আপলোড হয়নি!' + supportMsg, 'error');
         }
 
@@ -305,23 +435,129 @@ verifyBtn.onclick = async () => {
         verifyBtn.innerHTML = originalBtnText;
         loading.classList.remove('show');
         console.error(err);
-
-        // 🔥 ERROR SCENARIO 3: Server Offline / Network Error
         showMessage('❌ সার্ভার কানেকশন পাওয়া যাচ্ছে না!' + supportMsg, 'error');
     }
 };
 
-// 🔥 Updated to use innerHTML for bold text and line breaks
-function showMessage(t, type) {
+// 🔥 UPDATE: showMessage Function to support Custom Duration
+function showMessage(t, type, customDuration) {
     messageDiv.innerHTML = t;
     messageDiv.className = 'toast show ' + type;
 
-    // Error হলে মেসেজটি ৮ সেকেন্ড থাকবে, যাতে নাম্বার দেখা যায়
-    let time = type === 'error' ? 8000 : 4000;
+    // ডিফল্ট: এরর হলে ৮ সেকেন্ড, সাকসেস হলে ৪ সেকেন্ড। অথবা কাস্টম টাইম।
+    let time = customDuration || (type === 'error' ? 8000 : 4000);
+
     setTimeout(() => messageDiv.className = 'toast', time);
 }
 
-========================================
-END OF COMMENTED CODE
-========================================
-*/
+toggleUserInfo();
+
+// 🎨 RESTORED COLOR COVERAGE ANALYSIS FUNCTIONS
+async function analyzeColorCoverage(file) {
+    try {
+        if (file.type.startsWith('image/')) {
+            return await analyzeImageColor(file);
+        } else if (file.type === 'application/pdf') {
+            return await analyzePDFColor(file);
+        }
+        return { colorPercentage: 0, pricePerPage: 2 };
+    } catch (error) {
+        console.error('Color analysis error:', error);
+        return { colorPercentage: 0, pricePerPage: 2 };
+    }
+}
+
+async function analyzeImageColor(imageFile) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const maxSize = 200;
+                const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const colorPercentage = calculateColorPercentage(imageData);
+                const pricePerPage = getPriceFromColorPercentage(colorPercentage);
+
+                resolve({ colorPercentage, pricePerPage });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(imageFile);
+    });
+}
+
+async function analyzePDFColor(pdfFile) {
+    try {
+        const arrayBuffer = await pdfFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+        let totalColorPercentage = 0;
+        const pagesToSample = Math.min(3, pdf.numPages);
+
+        for (let i = 1; i <= pagesToSample; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 0.5 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            totalColorPercentage += calculateColorPercentage(imageData);
+        }
+
+        const avgColorPercentage = totalColorPercentage / pagesToSample;
+        const pricePerPage = getPriceFromColorPercentage(avgColorPercentage);
+
+        return { colorPercentage: avgColorPercentage, pricePerPage };
+    } catch (error) {
+        console.error('PDF color analysis error:', error);
+        return { colorPercentage: 0, pricePerPage: 2 };
+    }
+}
+
+function calculateColorPercentage(imageData) {
+    const pixels = imageData.data;
+    let colorPixels = 0;
+    let totalPixels = 0;
+
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+
+        const maxChannel = Math.max(r, g, b);
+        const minChannel = Math.min(r, g, b);
+        const saturation = maxChannel - minChannel;
+
+        if (saturation > 15 && maxChannel > 30) {
+            colorPixels++;
+        }
+        totalPixels++;
+    }
+
+    return (colorPixels / totalPixels) * 100;
+}
+
+function getPriceFromColorPercentage(colorPercentage) {
+    if (colorPercentage < 40) return 3;       // Light Color: 0-40%
+    if (colorPercentage < 70) return 4;       // Medium Color: 40-70%
+    if (colorPercentage < 90) return 5;       // Heavy Color: 70-90%
+    return 6;                                  // Full Color: >90%
+}
+
+function getColorTierLabel(percentage) {
+    if (percentage < 40) return 'Light Color';
+    if (percentage < 70) return 'Medium Color';
+    if (percentage < 90) return 'Heavy Color';
+    return 'Full Color';
+}

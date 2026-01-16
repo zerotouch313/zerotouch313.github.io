@@ -4,106 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Touch - Service Maintenance</title>
+    <title>Zero Touch</title>
     <link rel="icon" type="image/x-icon" href="assets/web_fav.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .maintenance-container {
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo-container {
-            margin-bottom: 40px;
-        }
-
-        .logo-container img {
-            width: 200px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        .maintenance-container h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #1a1a1a;
-            margin-bottom: 20px;
-            line-height: 1.3;
-        }
-
-        .maintenance-container p {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-
-        .highlight {
-            color: #00a884;
-            font-weight: 700;
-        }
-
-        @media (max-width: 600px) {
-            .maintenance-container {
-                padding: 40px 30px;
-            }
-
-            .maintenance-container h1 {
-                font-size: 1.5rem;
-            }
-
-            .maintenance-container p {
-                font-size: 1.1rem;
-            }
-
-            .logo-container img {
-                width: 150px;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div class="maintenance-container">
-        <div class="logo-container">
-            <img src="assets/web_fav.png" alt="Zero Touch Logo">
-        </div>
-
-        <h1>Service is going through a little maintenance update.</h1>
-
-        <p>Service will be open from<br><span class="highlight">16 Jan, 2026</span></p>
-    </div>
-
-    <!-- 
-    ========================================
-    ORIGINAL CONTENT - COMMENTED OUT
-    ========================================
-    
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="styles.css">
-
     <div class="main-container">
         <div class="card">
             <div class="header">
@@ -112,21 +20,45 @@
                     <h1> Zero Touch</h1>
                 </div>
                 <p>Remote Document Printing Portal</p>
+
+                <!-- Social Links -->
+                <div class="social-links">
+                    <a href="https://www.facebook.com/profile.php?id=61586137062963" target="_blank"
+                        rel="noopener noreferrer" class="social-link facebook">
+                        <i class="ph-fill ph-facebook-logo"></i>
+                        <span>Facebook Page</span>
+                    </a>
+                    <a href="https://forms.gle/SeX6rcnPLSTVzGwy8" target="_blank" rel="noopener noreferrer"
+                        class="social-link google-form">
+                        <i class="ph-fill ph-note"></i>
+                        <span>Feedback Form</span>
+                    </a>
+                </div>
             </div>
 
             <div class="content">
                 <form id="uploadForm">
 
-                    <div class="user-info-section">
+                    <div class="pickup-option-container" style="margin-bottom: 20px;">
+                        <label class="pickup-label">
+                            <input type="checkbox" id="collectLater" class="pickup-checkbox">
+                            <span class="pickup-text">
+                                <strong>Collect Later? (পরে নিবেন?)</strong>
+                                <br><small>এখন ব্যস্ত? পরে এসে কাগজ নিতে চাইলে টিক দিন।</small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="user-info-section" id="userInfoSection" style="display: none;">
                         <div class="form-group">
                             <label class="section-label"><i class="ph ph-user"></i> User Name</label>
                             <input type="text" id="userName" class="ctrl-input full-width"
-                                placeholder="Enter your full name" required>
+                                placeholder="Enter your full name">
                         </div>
                         <div class="form-group">
                             <label class="section-label"><i class="ph ph-identification-card"></i> Student ID</label>
                             <input type="text" id="studentId" class="ctrl-input full-width"
-                                placeholder="Enter Student ID (e.g., 2003001)" required>
+                                placeholder="Enter Student ID (e.g., 2003001)">
                         </div>
                     </div>
 
@@ -139,12 +71,12 @@
                     </div>
 
                     <div class="upload-area">
-                        <input type="file" id="fileInput" multiple required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        <input type="file" id="fileInput" multiple required accept=".pdf,.jpg,.jpeg,.png"
                             class="file-input-hidden">
                         <label for="fileInput" class="upload-label">
                             <i class="ph ph-cloud-arrow-up icon"></i>
                             <span class="main-text">Click to upload files</span>
-                            <span class="sub-text">PDF, DOCX, Images (Max 10MB)</span>
+                            <span class="sub-text">PDF, Images (Max 10MB)</span>
                             <span class="sub-text">Only A4 size</span>
                         </label>
                     </div>
@@ -154,16 +86,6 @@
                     <div class="cost-summary">
                         <span>Total Estimated Cost:</span>
                         <span class="cost-amount"><span id="totalCost">0</span> Taka</span>
-                    </div>
-
-                    <div class="pickup-option-container">
-                        <label class="pickup-label">
-                            <input type="checkbox" id="collectLater" class="pickup-checkbox">
-                            <span class="pickup-text">
-                                <strong>Collect Later?</strong>
-                                <br><small>Check this if you are not near the printer now.</small>
-                            </span>
-                        </label>
                     </div>
 
                     <div class="actions">
@@ -234,7 +156,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="pay-btn verify-btn" id="verifyBtn">Verify &amp; Proceed</button>
+                    <button class="pay-btn verify-btn" id="verifyBtn">Verify & Proceed</button>
                     <button class="btn-text" id="cancelPayment">Cancel</button>
                 </div>
             </div>
@@ -246,15 +168,35 @@
         </div>
 
         <div id="message" class="toast"></div>
+
+        <!-- WhatsApp Contact Section -->
+        <div class="whatsapp-contact-section">
+            <div class="whatsapp-header">
+                <i class="ph-fill ph-whatsapp-logo"></i>
+                <h3>Contact us on WhatsApp</h3>
+            </div>
+            <div class="whatsapp-numbers">
+                <a href="https://wa.me/8801771080238" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
+                    <i class="ph-fill ph-whatsapp-logo"></i>
+                    <span>01771080238</span>
+                    <i class="ph ph-arrow-right"></i>
+                </a>
+                <a href="https://wa.me/8801568550778" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
+                    <i class="ph-fill ph-whatsapp-logo"></i>
+                    <span>01568550778</span>
+                    <i class="ph ph-arrow-right"></i>
+                </a>
+                <a href="https://wa.me/8801716897644" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
+                    <i class="ph-fill ph-whatsapp-logo"></i>
+                    <span>01716897644</span>
+                    <i class="ph ph-arrow-right"></i>
+                </a>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="app.js"></script>
-    
-    ========================================
-    END OF COMMENTED CONTENT
-    ========================================
-    -->
 </body>
 
 </html>
