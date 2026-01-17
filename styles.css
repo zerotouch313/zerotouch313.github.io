@@ -1,3 +1,7 @@
+/* =============================================== */
+/* CSS CUSTOM PROPERTIES (VARIABLES)              */
+/* Color palette and design tokens                */
+/* =============================================== */
 :root {
     --primary: #15803d;
     --primary-hover: #14532d;
@@ -12,6 +16,130 @@
     --focus-ring: rgba(21, 128, 61, 0.25);
 }
 
+/* =============================================== */
+/* MAINTENANCE MODE OVERLAY                        */
+/* Full-screen overlay when app is under maintenance */
+/* =============================================== */
+.maintenance-overlay {
+    display: none;
+    /* Hidden by default, controlled by JS */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #052e16 0%, #14532d 50%, #15803d 100%);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Maintenance content card */
+.maintenance-content {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 50px 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Maintenance wrench icon */
+.maintenance-icon {
+    font-size: 5rem;
+    color: #15803d;
+    margin-bottom: 20px;
+    animation: wrenchRotate 2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(21, 128, 61, 0.3));
+}
+
+@keyframes wrenchRotate {
+
+    0%,
+    100% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(10deg);
+    }
+}
+
+/* Maintenance heading */
+.maintenance-content h2 {
+    font-size: 2rem;
+    color: #111827;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+/* Maintenance message text */
+.maintenance-content p {
+    font-size: 1.05rem;
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* Subtext */
+.maintenance-subtext {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+
+/* Contact info box during maintenance */
+.maintenance-contact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 2px solid #86efac;
+    border-radius: 16px;
+    color: #166534;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.maintenance-contact i {
+    font-size: 1.8rem;
+    color: #25D366;
+    filter: drop-shadow(0 2px 4px rgba(37, 211, 102, 0.3));
+}
+
+.maintenance-contact strong {
+    color: #15803d;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+/* =============================================== */
+/* MAIN STYLES                                     */
+/* =============================================== */
+
+/* =============================================== */
+/* UNIVERSAL RESET                                 */
+/* Removes browser default styles                 */
+/* =============================================== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -19,6 +147,10 @@
     font-family: 'Inter', sans-serif;
 }
 
+/* =============================================== */
+/* BODY LAYOUT                                     */
+/* Centers content and sets background            */
+/* =============================================== */
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
@@ -29,6 +161,11 @@ body {
     padding: 20px;
 }
 
+/* =============================================== */
+/* LOGO AND BRANDING                               */
+/* =============================================== */
+
+/* Favicon logo image */
 .fav {
     width: 50px;
     height: 50px;
@@ -36,18 +173,26 @@ body {
 
 }
 
+/* Header image container - centers logo and title */
 .himg {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
+/* =============================================== */
+/* MAIN CONTAINER                                  */
+/* Sets max width and responsive sizing           */
+/* =============================================== */
 .main-container {
     width: 100%;
     max-width: 480px;
 }
 
-/* Card Styling */
+/* =============================================== */
+/* CARD STYLING                                    */
+/* Main card with shadow and rounded corners      */
+/* =============================================== */
 .card {
     background: var(--card-bg);
     border-radius: 16px;
@@ -56,6 +201,10 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+/* =============================================== */
+/* HEADER SECTION                                  */
+/* Gradient background with white text            */
+/* =============================================== */
 .header {
     background: linear-gradient(135deg, var(--primary), var(--primary-hover));
     padding: 30px 20px;
@@ -78,7 +227,11 @@ body {
     font-weight: 300;
 }
 
-/* Social Links - Premium Design */
+/* =============================================== */
+/* SOCIAL LINKS - Premium Design                   */
+/* Facebook and feedback form links               */
+/* Glassmorphism with hover animations            */
+/* =============================================== */
 .social-links {
     display: flex;
     gap: 12px;
@@ -147,7 +300,11 @@ body {
     border-color: rgba(52, 168, 83, 0.6);
 }
 
-/* WhatsApp Contact Section - Premium Design */
+/* =============================================== */
+/* WHATSAPP CONTACT SECTION - Premium Design       */
+/* Shows three WhatsApp numbers for support       */
+/* Green gradient theme matching WhatsApp brand   */
+/* =============================================== */
 .whatsapp-contact-section {
     margin-top: 30px;
     background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
@@ -267,11 +424,20 @@ body {
     }
 }
 
+/* =============================================== */
+/* CONTENT SECTION                                 */
+/* Main form container                            */
+/* =============================================== */
 .content {
     padding: 25px;
 }
 
-/* Form Elements */
+/* =============================================== */
+/* FORM ELEMENTS                                   */
+/* Labels, inputs, selects with consistent styling */
+/* =============================================== */
+
+/* Section labels with icons */
 .section-label {
     font-weight: 600;
     display: flex;
@@ -317,7 +483,10 @@ body {
     padding-right: 40px;
 }
 
-/* Fixed Location Box */
+/* =============================================== */
+/* FIXED LOCATION BOX                              */
+/* Displays current printer location              */
+/* =============================================== */
 .fixed-location {
     width: 100%;
     padding: 12px;
@@ -337,7 +506,13 @@ body {
     font-size: 1.1rem;
 }
 
-/* Upload Area - Premium Design */
+/* =============================================== */
+/* UPLOAD AREA - Premium Design                    */
+/* Drag & drop or click to upload files           */
+/* Glassmorphism with floating icon animation     */
+/* =============================================== */
+
+/* Hide native file input */
 .file-input-hidden {
     display: none;
 }
@@ -416,7 +591,11 @@ body {
     margin-top: 4px;
 }
 
-/* Files List - Premium Spacious Design */
+/* =============================================== */
+/* FILES LIST - Premium Spacious Design            */
+/* Shows uploaded files with settings controls    */
+/* Card-based layout with hover effects           */
+/* =============================================== */
 .files-list {
     margin-top: 25px;
     display: flex;
@@ -565,7 +744,10 @@ body {
     transform: translateY(0) scale(0.98);
 }
 
-/* Cost Summary */
+/* =============================================== */
+/* COST SUMMARY                                    */
+/* Displays total estimated cost                  */
+/* =============================================== */
 .cost-summary {
     margin-top: 25px;
     padding: 16px;
@@ -584,7 +766,10 @@ body {
     color: #4ade80;
 }
 
-/* 🔥 NEW: Pickup Checkbox Styling */
+/* =============================================== */
+/* COLLECT LATER CHECKBOX                          */
+/* Pickup option with bilingual text              */
+/* =============================================== */
 .pickup-option-container {
     margin-top: 20px;
     padding: 12px;
@@ -618,8 +803,10 @@ body {
     font-size: 0.85rem;
 }
 
-/* Buttons */
-/* Buttons - Ultra Premium Design */
+/* =============================================== */
+/* BUTTONS - Ultra Premium Design                  */
+/* Glassmorphism with gradient and animations     */
+/* =============================================== */
 .actions {
     margin-top: 20px;
     display: flex;
@@ -692,7 +879,10 @@ body {
     transform: translateY(-1px) scale(0.98);
 }
 
-/* Payment Modal */
+/* =============================================== */
+/* PAYMENT MODAL                                   */
+/* Full-screen overlay for payment verification   */
+/* =============================================== */
 .payment-overlay {
     position: fixed;
     top: 0;
@@ -956,6 +1146,10 @@ body {
     width: 60%;
 }
 
+/* =============================================== */
+/* LOADING OVERLAY                                 */
+/* Full-screen loading state during upload        */
+/* =============================================== */
 .loading-overlay {
     display: none;
     position: fixed;
@@ -984,6 +1178,10 @@ body {
     margin-bottom: 15px;
 }
 
+/* =============================================== */
+/* TOAST MESSAGES                                  */
+/* Success/error notifications at bottom          */
+/* =============================================== */
 .toast {
     visibility: hidden;
     min-width: 280px;
@@ -1014,6 +1212,12 @@ body {
     background-color: #ef4444;
 }
 
+/* =============================================== */
+/* ANIMATIONS                                      */
+/* Keyframe animations for various elements       */
+/* =============================================== */
+
+/* Spinner rotation animation */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -1046,7 +1250,12 @@ body {
     }
 }
 
-/* Responsive Design for File Items */
+/* =============================================== */
+/* RESPONSIVE DESIGN                               */
+/* Media queries for mobile devices               */
+/* =============================================== */
+
+/* File items on smaller screens */
 @media (max-width: 500px) {
     .settings-row {
         gap: 10px;
