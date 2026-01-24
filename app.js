@@ -387,7 +387,7 @@ uploadForm.addEventListener('submit', (e) => {
 });
 
 // ===============================================
-// PAYMENT VERIFICATION HANDLER (MODIFIED)
+// PAYMENT VERIFICATION HANDLER (ORDER FIX)
 // ===============================================
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
@@ -440,56 +440,57 @@ verifyBtn.onclick = async () => {
         const finalUserName = collectLaterInput.checked ? userNameInput.value.trim() : 'Unknown';
         const finalStudentId = collectLaterInput.checked ? studentIdInput.value.trim() : 'N/A';
 
-        // 1. Add Original Files
-        selectedFiles.forEach(item => formData.append('files', item.file));
-
-        // Create base settings array
-        let settingsData = selectedFiles.map(item => ({
-            fileName: item.file.name,
-            range: item.range,
-            copies: item.copies,
-            color: item.printMode,
-            cost: item.calculatedCost || 0,
-            pages: item.pageCount
-        }));
+        // Prepare Base Settings Array
+        let settingsData = [];
 
         // -----------------------------------------------------------
-        // FIX: FORCE COLLECT LATER TO BE THE LAST PAGE (IMAGE TRICK)
-        // -----------------------------------------------------------
+        // FIX: APPEND COLLECT LATER SLIP *FIRST* // -----------------------------------------------------------
         let sendCollectLaterFlag = collectLaterInput.checked;
 
         if (collectLaterInput.checked) {
-            // Generate an image slip for the user info
+            // Generate slip image
             const slipBlob = await createSlipImage(finalUserName, finalStudentId, trxId);
 
-            // Append this slip as the LAST file
+            // Append Slip to FormData FIRST
             formData.append('files', slipBlob, "Collect_Later_Slip.jpg");
 
-            // Add settings for this slip (Cost 1tk as per fee)
+            // Add Slip Settings FIRST
             settingsData.push({
                 fileName: "Collect_Later_Slip.jpg",
                 range: "",
                 copies: 1,
                 color: 'bw',
-                cost: 1, // Using the 1tk fee as the cost for this file
+                cost: 1,
                 pages: 1
             });
 
-            // IMPORTANT: Set collectLater to false for the server logic
+            // Prevent server from generating its own slip
             sendCollectLaterFlag = false;
         }
 
-        // Attach Settings
-        formData.append('fileSettings', JSON.stringify(settingsData));
+        // -----------------------------------------------------------
+        // APPEND USER FILES *AFTER* SLIP
+        // -----------------------------------------------------------
+        selectedFiles.forEach(item => {
+            formData.append('files', item.file);
 
-        // Attach Metadata
+            settingsData.push({
+                fileName: item.file.name,
+                range: item.range,
+                copies: item.copies,
+                color: item.printMode,
+                cost: item.calculatedCost || 0,
+                pages: item.pageCount
+            });
+        });
+
+        // Attach Settings & Metadata
+        formData.append('fileSettings', JSON.stringify(settingsData));
         formData.append('userName', finalUserName);
         formData.append('studentId', finalStudentId);
         formData.append('location', printerLocation);
         formData.append('trxId', trxId);
         formData.append('totalCost', currentTotalCost);
-
-        // Send modified flag
         formData.append('collectLater', sendCollectLaterFlag);
 
         // Upload to server
@@ -549,21 +550,19 @@ function createSlipImage(name, id, trx) {
         ctx.fillStyle = '#000000';
         ctx.textAlign = 'center';
 
-        // -------------------------
-        // ADDED: ZeroTouch Branding
-        // -------------------------
+        // Branding (ZeroTouch)
         ctx.font = 'bold italic 40px Arial';
         ctx.fillText("ZeroTouch", canvas.width / 2, 55);
 
-        // Header (Moved down)
+        // Header
         ctx.font = 'bold 22px Arial';
         ctx.fillText("COLLECT LATER SLIP", canvas.width / 2, 90);
 
-        // Date (Moved down)
+        // Date
         ctx.font = '16px Arial';
         ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 115);
 
-        // Divider (Moved down)
+        // Divider
         ctx.beginPath();
         ctx.moveTo(40, 130);
         ctx.lineTo(canvas.width - 40, 130);
@@ -573,7 +572,7 @@ function createSlipImage(name, id, trx) {
         ctx.textAlign = 'left';
         ctx.font = 'bold 24px Arial';
 
-        let y = 180; // Start printing details a bit lower
+        let y = 180;
         ctx.fillText(`Name: ${name}`, 50, y);
         y += 50;
         ctx.fillText(`Student ID: ${id}`, 50, y);
