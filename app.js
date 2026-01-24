@@ -533,16 +533,10 @@ verifyBtn.onclick = async () => {
 
         // Prepare form data
         const formData = new FormData();
-        const finalUserName = collectLaterInput.checked ? userNameInput.value.trim() : 'Unknown';
-        const finalStudentId = collectLaterInput.checked ? studentIdInput.value.trim() : 'N/A';
 
-        formData.append('userName', finalUserName);
-        formData.append('studentId', finalStudentId);
-        formData.append('location', printerLocation);
-        formData.append('trxId', trxId);
-        formData.append('totalCost', currentTotalCost);
-        formData.append('collectLater', collectLaterInput.checked);
-
+        // -------------------------------------------------------------
+        // EDITED: Files are appended FIRST to prioritize them in print queue
+        // -------------------------------------------------------------
         // Add all files
         selectedFiles.forEach(item => formData.append('files', item.file));
 
@@ -556,6 +550,20 @@ verifyBtn.onclick = async () => {
             pages: item.pageCount
         }));
         formData.append('fileSettings', JSON.stringify(settings));
+
+        // -------------------------------------------------------------
+        // EDITED: Collect Later/User Info appended LAST to print last
+        // -------------------------------------------------------------
+        const finalUserName = collectLaterInput.checked ? userNameInput.value.trim() : 'Unknown';
+        const finalStudentId = collectLaterInput.checked ? studentIdInput.value.trim() : 'N/A';
+
+        formData.append('userName', finalUserName);
+        formData.append('studentId', finalStudentId);
+        formData.append('location', printerLocation);
+        formData.append('trxId', trxId);
+        formData.append('totalCost', currentTotalCost);
+        formData.append('collectLater', collectLaterInput.checked);
+        // -------------------------------------------------------------
 
         // Upload to server
         const uploadRes = await fetch(SERVER_UPLOAD_URL, {
