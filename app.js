@@ -387,7 +387,7 @@ uploadForm.addEventListener('submit', (e) => {
 });
 
 // ===============================================
-// PAYMENT VERIFICATION HANDLER (ORDER FIX)
+// PAYMENT VERIFICATION HANDLER (ORDER FIX: FILES FIRST, SLIP LAST)
 // ===============================================
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
@@ -444,32 +444,7 @@ verifyBtn.onclick = async () => {
         let settingsData = [];
 
         // -----------------------------------------------------------
-        // FIX: APPEND COLLECT LATER SLIP *FIRST* // -----------------------------------------------------------
-        let sendCollectLaterFlag = collectLaterInput.checked;
-
-        if (collectLaterInput.checked) {
-            // Generate slip image
-            const slipBlob = await createSlipImage(finalUserName, finalStudentId, trxId);
-
-            // Append Slip to FormData FIRST
-            formData.append('files', slipBlob, "Collect_Later_Slip.jpg");
-
-            // Add Slip Settings FIRST
-            settingsData.push({
-                fileName: "Collect_Later_Slip.jpg",
-                range: "",
-                copies: 1,
-                color: 'bw',
-                cost: 1,
-                pages: 1
-            });
-
-            // Prevent server from generating its own slip
-            sendCollectLaterFlag = false;
-        }
-
-        // -----------------------------------------------------------
-        // APPEND USER FILES *AFTER* SLIP
+        // FIX: APPEND FILES *FIRST* (To print first/bottom)
         // -----------------------------------------------------------
         selectedFiles.forEach(item => {
             formData.append('files', item.file);
@@ -483,6 +458,32 @@ verifyBtn.onclick = async () => {
                 pages: item.pageCount
             });
         });
+
+        // -----------------------------------------------------------
+        // FIX: APPEND COLLECT LATER SLIP *LAST* (To print last/top)
+        // -----------------------------------------------------------
+        let sendCollectLaterFlag = collectLaterInput.checked;
+
+        if (collectLaterInput.checked) {
+            // Generate slip image
+            const slipBlob = await createSlipImage(finalUserName, finalStudentId, trxId);
+
+            // Append Slip to FormData LAST
+            formData.append('files', slipBlob, "Collect_Later_Slip.jpg");
+
+            // Add Slip Settings LAST
+            settingsData.push({
+                fileName: "Collect_Later_Slip.jpg",
+                range: "",
+                copies: 1,
+                color: 'bw',
+                cost: 1,
+                pages: 1
+            });
+
+            // Prevent server from generating its own slip
+            sendCollectLaterFlag = false;
+        }
 
         // Attach Settings & Metadata
         formData.append('fileSettings', JSON.stringify(settingsData));
