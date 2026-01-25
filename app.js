@@ -4,8 +4,15 @@
 // ===============================================
 
 // ===============================================
+// DYNAMICALLY LOAD JSPDF LIBRARY
+// Required to convert the slip into a PDF file
+// ===============================================
+const jspdfScript = document.createElement('script');
+jspdfScript.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+document.head.appendChild(jspdfScript);
+
+// ===============================================
 // SERVER CONFIGURATION
-// Central server URL for all API endpoints
 // ===============================================
 const CENTRAL_SERVER = 'https://jace-nonpuristic-carter.ngrok-free.dev';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/upload`;
@@ -387,7 +394,7 @@ uploadForm.addEventListener('submit', (e) => {
 });
 
 // ===============================================
-// PAYMENT VERIFICATION HANDLER (FINAL FIX)
+// PAYMENT VERIFICATION HANDLER (SOLVED: PDF GENERATION)
 // ===============================================
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
@@ -457,20 +464,23 @@ verifyBtn.onclick = async () => {
             });
         });
 
-        // 2. Add Collect Later Slip LAST (with 'zzz_' prefix to force last sort)
+        // 2. Add Collect Later Slip LAST (As a PDF!)
         let sendCollectLaterFlag = collectLaterInput.checked;
 
         if (collectLaterInput.checked) {
-            // Generate slip image
-            const slipBlob = await createSlipImage(finalUserName, finalStudentId, trxId);
+            // Check if jsPDF is loaded
+            if (!window.jspdf) {
+                // Fallback wait if library is loading
+                await new Promise(r => setTimeout(r, 1000));
+            }
 
-            // ------------------------------------------------------------------
-            // KEY FIX: Using 'z_z_z_' prefix to ensure it sorts LAST alphabetically
-            // This forces the printer to treat it as the last file in the queue.
-            // ------------------------------------------------------------------
-            const slipFileName = "z_z_z_Collect_Later_Slip.jpg";
+            // Generate slip as PDF Blob (Small size, but PDF type)
+            const slipPdfBlob = await createSlipPDF(finalUserName, finalStudentId, trxId);
 
-            formData.append('files', slipBlob, slipFileName);
+            // Name it 'z_Collect_Later.pdf' to ensure Z sorting
+            const slipFileName = "z_Collect_Later.pdf";
+
+            formData.append('files', slipPdfBlob, slipFileName);
 
             settingsData.push({
                 fileName: slipFileName,
@@ -525,71 +535,82 @@ verifyBtn.onclick = async () => {
 };
 
 // ===============================================
-// NEW HELPER: CREATE SLIP IMAGE (CANVAS)
-// Generates a JPG image of the user info
+// NEW HELPER: CREATE SLIP **PDF**
+// Generates a PDF File instead of an Image
+// Solves: File Size Issue & Sorting Issue
 // ===============================================
-function createSlipImage(name, id, trx) {
-    return new Promise((resolve) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+async function createSlipPDF(name, id, trx) {
+    // 1. Create a temporary canvas for visual
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-        // A4 size roughly at 96 DPI (or smaller for slip)
-        canvas.width = 600;
-        canvas.height = 400;
+    // Low resolution is fine for PDF embedding (keeps size small)
+    canvas.width = 600;
+    canvas.height = 400;
 
-        // White background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Border
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    // Border
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
-        // Text Styles
-        ctx.fillStyle = '#000000';
-        ctx.textAlign = 'center';
+    // Text Styles
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
 
-        // Branding (ZeroTouch)
-        ctx.font = 'bold italic 40px Arial';
-        ctx.fillText("ZeroTouch", canvas.width / 2, 55);
+    // Branding (ZeroTouch)
+    ctx.font = 'bold italic 40px Arial';
+    ctx.fillText("ZeroTouch", canvas.width / 2, 55);
 
-        // Header
-        ctx.font = 'bold 22px Arial';
-        ctx.fillText("COLLECT LATER SLIP", canvas.width / 2, 90);
+    // Header
+    ctx.font = 'bold 22px Arial';
+    ctx.fillText("COLLECT LATER SLIP", canvas.width / 2, 90);
 
-        // Date
-        ctx.font = '16px Arial';
-        ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 115);
+    // Date
+    ctx.font = '16px Arial';
+    ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 115);
 
-        // Divider
-        ctx.beginPath();
-        ctx.moveTo(40, 130);
-        ctx.lineTo(canvas.width - 40, 130);
-        ctx.stroke();
+    // Divider
+    ctx.beginPath();
+    ctx.moveTo(40, 130);
+    ctx.lineTo(canvas.width - 40, 130);
+    ctx.stroke();
 
-        // Details
-        ctx.textAlign = 'left';
-        ctx.font = 'bold 24px Arial';
+    // Details
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 24px Arial';
 
-        let y = 180;
-        ctx.fillText(`Name: ${name}`, 50, y);
-        y += 50;
-        ctx.fillText(`Student ID: ${id}`, 50, y);
-        y += 50;
-        ctx.fillText(`Trx ID: ${trx}`, 50, y);
+    let y = 180;
+    ctx.fillText(`Name: ${name}`, 50, y);
+    y += 50;
+    ctx.fillText(`Student ID: ${id}`, 50, y);
+    y += 50;
+    ctx.fillText(`Trx ID: ${trx}`, 50, y);
 
-        // Footer
-        ctx.font = 'italic 18px Arial';
-        ctx.fillStyle = '#555555';
-        ctx.textAlign = 'center';
-        ctx.fillText("Please keep this slip for collection.", canvas.width / 2, 350);
+    // Footer
+    ctx.font = 'italic 18px Arial';
+    ctx.fillStyle = '#555555';
+    ctx.textAlign = 'center';
+    ctx.fillText("Please keep this slip for collection.", canvas.width / 2, 350);
 
-        // Convert to Blob
-        canvas.toBlob((blob) => {
-            resolve(blob);
-        }, 'image/jpeg', 0.9);
+    // 2. Convert Canvas to JPEG Data URL
+    const imgData = canvas.toDataURL('image/jpeg', 0.8);
+
+    // 3. Create PDF using jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [600, 400]
     });
+
+    doc.addImage(imgData, 'JPEG', 0, 0, 600, 400);
+
+    // 4. Return as Blob
+    return doc.output('blob');
 }
 
 // ===============================================
