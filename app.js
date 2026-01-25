@@ -387,7 +387,7 @@ uploadForm.addEventListener('submit', (e) => {
 });
 
 // ===============================================
-// PAYMENT VERIFICATION HANDLER (ORDER FIX: FILES FIRST, SLIP LAST)
+// PAYMENT VERIFICATION HANDLER (FINAL FIX)
 // ===============================================
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
@@ -443,9 +443,7 @@ verifyBtn.onclick = async () => {
         // Prepare Base Settings Array
         let settingsData = [];
 
-        // -----------------------------------------------------------
-        // FIX: APPEND FILES *FIRST* (To print first/bottom)
-        // -----------------------------------------------------------
+        // 1. Add User Files FIRST
         selectedFiles.forEach(item => {
             formData.append('files', item.file);
 
@@ -459,21 +457,23 @@ verifyBtn.onclick = async () => {
             });
         });
 
-        // -----------------------------------------------------------
-        // FIX: APPEND COLLECT LATER SLIP *LAST* (To print last/top)
-        // -----------------------------------------------------------
+        // 2. Add Collect Later Slip LAST (with 'zzz_' prefix to force last sort)
         let sendCollectLaterFlag = collectLaterInput.checked;
 
         if (collectLaterInput.checked) {
             // Generate slip image
             const slipBlob = await createSlipImage(finalUserName, finalStudentId, trxId);
 
-            // Append Slip to FormData LAST
-            formData.append('files', slipBlob, "Collect_Later_Slip.jpg");
+            // ------------------------------------------------------------------
+            // KEY FIX: Using 'z_z_z_' prefix to ensure it sorts LAST alphabetically
+            // This forces the printer to treat it as the last file in the queue.
+            // ------------------------------------------------------------------
+            const slipFileName = "z_z_z_Collect_Later_Slip.jpg";
 
-            // Add Slip Settings LAST
+            formData.append('files', slipBlob, slipFileName);
+
             settingsData.push({
-                fileName: "Collect_Later_Slip.jpg",
+                fileName: slipFileName,
                 range: "",
                 copies: 1,
                 color: 'bw',
@@ -481,7 +481,6 @@ verifyBtn.onclick = async () => {
                 pages: 1
             });
 
-            // Prevent server from generating its own slip
             sendCollectLaterFlag = false;
         }
 
