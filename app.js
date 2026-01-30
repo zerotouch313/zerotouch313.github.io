@@ -14,7 +14,7 @@ document.head.appendChild(jspdfScript);
 // ===============================================
 // SERVER CONFIGURATION
 // ===============================================
-const CENTRAL_SERVER = 'https://jace-nonpuristic-carter.ngrok-free.dev';
+const CENTRAL_SERVER = 'https://tressa-endosarcous-semimalignantly.ngrok-free.dev';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/upload`;
 
 // ===============================================
