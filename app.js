@@ -14,7 +14,7 @@ document.head.appendChild(jspdfScript);
 // ===============================================
 // SERVER CONFIGURATION
 // ===============================================
-const CENTRAL_SERVER = 'https://tressa-endosarcous-semimalignantly.ngrok-free.dev';
+const CENTRAL_SERVER = 'http://62.171.185.248:5000';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/upload`;
 
 // ===============================================
