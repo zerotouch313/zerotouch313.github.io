@@ -1,30 +1,17 @@
 // ===============================================
 // ZERO TOUCH PRINTING PORTAL - MAIN APPLICATION
-// Remote document printing service
 // ===============================================
 
-// ===============================================
-// DYNAMICALLY LOAD JSPDF LIBRARY
-// Required to convert the slip into a PDF file
-// ===============================================
-const jspdfScript = document.createElement('script');
-jspdfScript.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-document.head.appendChild(jspdfScript);
-
-// ===============================================
-// SERVER CONFIGURATION
-// ===============================================
 const CENTRAL_SERVER = 'http://62.171.185.248:5000';
-const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/upload`;
+const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/api/print/upload`; 
+const VERIFY_PAYMENT_URL = `${CENTRAL_SERVER}/verify-payment`;
 
-// ===============================================
-// MAINTENANCE MODE CONTROL
-// ===============================================
+// 🤫 Silent Web Guest Credentials
+const WEB_GUEST_EMAIL = 'mohammod.tasin.07@gmail.com'; 
+const WEB_GUEST_PASS = '12341234'; 
+let currentJWT = null;
 const MAINTENANCE_MODE = false;
 
-// ===============================================
-// PDF.JS WORKER CONFIGURATION
-// ===============================================
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 } else {
@@ -35,9 +22,7 @@ if (typeof pdfjsLib !== 'undefined') {
     });
 }
 
-// ===============================================
-// DOM ELEMENT REFERENCES
-// ===============================================
+// DOM Elements
 const fileInput = document.getElementById('fileInput');
 const filesList = document.getElementById('filesList');
 const uploadForm = document.getElementById('uploadForm');
@@ -49,111 +34,151 @@ const clearBtn = document.getElementById('clearBtn');
 const verifyBtn = document.getElementById('verifyBtn');
 const submitBtn = document.getElementById('submitBtn');
 
-// Collect Later feature elements
 const collectLaterInput = document.getElementById('collectLater');
 const userInfoSection = document.getElementById('userInfoSection');
 const userNameInput = document.getElementById('userName');
 const studentIdInput = document.getElementById('studentId');
 const trxIdInput = document.getElementById('trxId');
-const printerLocation = document.getElementById('printerLocation').value;
+const printerLocationSelect = document.getElementById('printerLocation');
+
+// Payment Modal Number Elements
+const bkashNumberEl = document.getElementById('bkashNumber');
+const nagadNumberEl = document.getElementById('nagadNumber');
+const bkashCopyIcon = document.getElementById('bkashCopyIcon');
+const nagadCopyIcon = document.getElementById('nagadCopyIcon');
+
+let selectedFiles = [];
+let currentTotalCost = 0;
+
+// ===============================================
+// 🔐 SILENT BACKGROUND AUTHENTICATION
+// ===============================================
+async function authenticateWebClient() {
+    try {
+        console.log("🔄 Fetching Web Guest Token...");
+        const res = await fetch(`${CENTRAL_SERVER}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: WEB_GUEST_EMAIL, password: WEB_GUEST_PASS })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            currentJWT = data.access_token;
+            console.log("✅ Web Client Authenticated Successfully!");
+        } else {
+            console.error("❌ Web Auth Failed. Check credentials.");
+        }
+    } catch (e) {
+        console.error("❌ Server Auth Connection Error:", e);
+    }
+}
+authenticateWebClient();
 
 // ===============================================
 // STATUS BANNER SETUP
 // ===============================================
 const statusBanner = document.createElement('div');
 statusBanner.id = 'statusBanner';
-statusBanner.style.display = 'none';
-statusBanner.style.padding = '15px';
-statusBanner.style.backgroundColor = '#fee2e2';
-statusBanner.style.color = '#b91c1c';
-statusBanner.style.border = '1px solid #ef4444';
-statusBanner.style.borderRadius = '8px';
-statusBanner.style.marginBottom = '15px';
-statusBanner.style.textAlign = 'center';
-statusBanner.style.fontWeight = 'bold';
+statusBanner.className = 'status-banner';
 document.querySelector('.content').insertBefore(statusBanner, uploadForm);
 
+// ===============================================
+// PRINTER STATUS & DYNAMIC NUMBERS
+// ===============================================
+function updatePaymentNumbers() {
+    const loc = printerLocationSelect.value;
+    let bkashNum = '';
+    let nagadNum = '';
 
-// ===============================================
-// APPLICATION STATE
-// ===============================================
-let selectedFiles = [];
-let currentTotalCost = 0;
+    // Logic for Hall based Numbers
+    if (loc === 'zia_hall' || loc === 'shaheed_hadi_hall') {
+        bkashNum = '01716897644';
+        nagadNum = '01716897644';
+    } else if (loc === 'female_hall' || loc === 'shere_bangla_hall') {
+        bkashNum = '01568550778';
+        nagadNum = '01956018657';
+    }
 
-// ===============================================
-// PRINTER STATUS CHECKER
-// ===============================================
-async function checkSystemStatus() {
+    bkashNumberEl.textContent = bkashNum;
+    nagadNumberEl.textContent = nagadNum;
+
+    bkashCopyIcon.onclick = () => {
+        navigator.clipboard.writeText(bkashNum);
+        showMessage('✅ bKash Number Copied!', 'success', 2000);
+    };
+    nagadCopyIcon.onclick = () => {
+        navigator.clipboard.writeText(nagadNum);
+        showMessage('✅ Nagad Number Copied!', 'success', 2000);
+    };
+}
+
+async function checkPrinterStatus() {
+    const locationId = printerLocationSelect.value;
     try {
-        const res = await fetch(`${CENTRAL_SERVER}/status/${printerLocation}`, {
-            headers: {
-                'ngrok-skip-browser-warning': 'true',
-                'User-Agent': 'ZeroTouchWeb'
-            }
-        });
-
+        const res = await fetch(`${CENTRAL_SERVER}/status/${locationId}?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
-            if (data.printer_online === false) {
+            if (!data.printer_online) {
+                const hallName = printerLocationSelect.options[printerLocationSelect.selectedIndex].text;
                 showStatusError(`
-                    ⚠️ Printer is Offline!<br>
-                    <span style="font-size: 0.9em; font-weight: normal;">Could you please check if the printer power button is on?<br>
-                    দয়া করে চেক করুন প্রিন্টারের পাওয়ার বাটন অন আছে কিনা।</span>
+                    <div class="offline-alert">
+                        <i class="ph-fill ph-warning-octagon"></i>
+                        <div>
+                            <strong>${hallName}-এর প্রিন্টারটি এখন অফলাইন আছে!</strong><br>
+                            <span style="font-size: 0.85em;">দয়া করে অন্য হল সিলেক্ট করুন।</span>
+                        </div>
+                    </div>
                 `);
             } else {
                 hideStatusError();
             }
         }
     } catch (e) {
-        console.log("Status check skipped (Network/Server Issue)");
+        console.error("Status check failed", e);
     }
 }
+
+printerLocationSelect.addEventListener('change', () => {
+    checkPrinterStatus();
+    updatePaymentNumbers(); // Update payment numbers when hall changes
+});
+
+setInterval(checkPrinterStatus, 5000);
+checkPrinterStatus();
+updatePaymentNumbers(); // Set initial numbers on load
 
 function showStatusError(msg) {
     if (statusBanner.innerHTML !== msg) {
         statusBanner.innerHTML = msg;
-        statusBanner.style.display = 'block';
+        statusBanner.classList.add('show');
         submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.classList.add('btn-disabled');
         submitBtn.innerHTML = '<i class="ph ph-prohibit"></i> Service Unavailable';
     }
 }
 
 function hideStatusError() {
-    if (statusBanner.style.display !== 'none') {
-        statusBanner.style.display = 'none';
+    if (statusBanner.classList.contains('show') || submitBtn.disabled) {
+        statusBanner.classList.remove('show');
         submitBtn.disabled = false;
-        submitBtn.style.opacity = '1';
-        submitBtn.style.cursor = 'pointer';
-        submitBtn.innerHTML = 'Proceed to Payment <i class="ph ph-arrow-right"></i>';
+        submitBtn.classList.remove('btn-disabled');
+        submitBtn.innerHTML = 'Proceed to Payment <i class="ph-bold ph-arrow-right"></i>';
     }
 }
 
-checkSystemStatus();
-setInterval(checkSystemStatus, 5000);
+const supportMsg = `<br><div style="margin-top:6px; font-size:0.85rem; color:#fca5a5;">যে কোনো সমস্যায় WhatsApp করুন</div>`;
 
-
-// ===============================================
-// SUPPORT MESSAGE TEMPLATE
-// ===============================================
-const supportMsg = `<br><div style="margin-top:6px; font-size:0.9rem; color:#ffd1d1;">
-                    যে কোনো সমস্যায় WhatsApp করুন:<br>
-                    <strong style="font-size:1rem; color:#fff;">01771080238</strong>
-                    </div>`;
-
-
-// ===============================================
-// COLLECT LATER TOGGLE FUNCTION
-// ===============================================
 function toggleUserInfo() {
     if (collectLaterInput.checked) {
         userInfoSection.style.display = 'block';
+        setTimeout(() => { userInfoSection.style.opacity = '1'; }, 10);
         userNameInput.required = true;
         studentIdInput.required = true;
         setTimeout(() => userNameInput.focus(), 100);
     } else {
-        userInfoSection.style.display = 'none';
+        userInfoSection.style.opacity = '0';
+        setTimeout(() => { userInfoSection.style.display = 'none'; }, 300);
         userNameInput.required = false;
         studentIdInput.required = false;
         userNameInput.value = '';
@@ -164,20 +189,14 @@ function toggleUserInfo() {
 
 collectLaterInput.addEventListener('change', toggleUserInfo);
 
-// ===============================================
-// FILE INPUT HANDLER
-// ===============================================
 fileInput.addEventListener('change', async (e) => {
     let hasDocxError = false;
-
     for (const f of Array.from(e.target.files)) {
         if (f.name.toLowerCase().endsWith('.doc') || f.name.toLowerCase().endsWith('.docx')) {
             hasDocxError = true;
             continue;
         }
-
         const colorAnalysis = await analyzeColorCoverage(f);
-
         selectedFiles.push({
             file: f,
             copies: 1,
@@ -195,15 +214,10 @@ fileInput.addEventListener('change', async (e) => {
         showMessage('❌ Word ফাইল সাপোর্ট করে না! দয়া করে PDF কনভার্ট করে আপলোড করুন।', 'error');
         fileInput.value = '';
     }
-
     estimatePageCount();
     updateUI();
 });
 
-
-// ===============================================
-// UI UPDATE FUNCTION
-// ===============================================
 function updateUI() {
     filesList.innerHTML = '';
     let grandTotalCost = 0;
@@ -214,7 +228,7 @@ function updateUI() {
 
         const header = document.createElement('div');
         header.className = 'file-header';
-        header.innerHTML = `<span>${item.file.name}</span> <span>${(item.file.size / 1024 / 1024).toFixed(2)} MB</span>`;
+        header.innerHTML = `<span class="truncate">${item.file.name}</span> <span class="file-size">${(item.file.size / 1024 / 1024).toFixed(2)} MB</span>`;
 
         const settingsDiv = document.createElement('div');
         settingsDiv.className = 'settings-row';
@@ -222,11 +236,9 @@ function updateUI() {
         const isImage = item.file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
         let totalPagesInput = '';
 
-        if (isImage) {
-            totalPagesInput = '';
-        } else if (item.file.name.toLowerCase().endsWith('.pdf')) {
-            let displayCount = item.pageCount === '...' ? '<span class="btn-spinner" style="width:12px;height:12px;border-color:#555;"></span>' : item.pageCount;
-            totalPagesInput = `<div class="input-group"><label>Pages</label><div class="ctrl-input" style="background:#eee; width:50px; padding:10px; text-align:center;">${displayCount}</div></div>`;
+        if (!isImage && item.file.name.toLowerCase().endsWith('.pdf')) {
+            let displayCount = item.pageCount === '...' ? '<div class="btn-spinner small"></div>' : item.pageCount;
+            totalPagesInput = `<div class="input-group"><label>Pages</label><div class="ctrl-input page-display">${displayCount}</div></div>`;
         }
 
         let rangeInput = '';
@@ -234,9 +246,9 @@ function updateUI() {
             rangeInput = `
             <div class="input-group">
                 <label>Range</label>
-                <input type="text" placeholder="1-5" value="${item.range}" 
+                <input type="text" placeholder="e.g. 1-5" value="${item.range}" 
                        onchange="updateFileSetting(${index}, 'range', this.value)"
-                       class="ctrl-input" style="width:70px;">
+                       class="ctrl-input range-input">
             </div>`;
         }
 
@@ -247,19 +259,18 @@ function updateUI() {
                 <label>Copies</label>
                 <input type="number" min="1" value="${item.copies}" 
                        onchange="updateFileSetting(${index}, 'copies', this.value)"
-                       class="ctrl-input" style="width:50px;">
+                       class="ctrl-input copies-input">
             </div>
-            <div class="input-group">
+            <div class="input-group flex-grow">
                 <label>Print Mode</label>
                 <select onchange="updatePrintMode(${index}, this.value)" 
-                        class="ctrl-select" style="${item.printMode === 'color' ? 'background:#dcfce7;' : ''}">
-                    <option value="bw" ${item.printMode === 'bw' ? 'selected' : ''}>B&W (2tk)</option>
-                    <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color (Auto)</option>
+                        class="ctrl-select mode-select ${item.printMode === 'color' ? 'color-active' : ''}">
+                    <option value="bw" ${item.printMode === 'bw' ? 'selected' : ''}>Black & White (2৳)</option>
+                    <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color (Auto Detect)</option>
                 </select>
                 ${item.printMode === 'color' ? `
-                    <div style="margin-top: 6px; padding: 8px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; border-radius: 8px; font-size: 0.75rem; color: #15803d; text-align: center; font-weight: 600;">
-                        ${item.colorTier} (${Math.round(item.colorPercentage)}%)<br>
-                        <span style="color: #16a34a;">${item.pricePerPage} tk/page</span>
+                    <div class="color-badge">
+                        ${item.colorTier} (${Math.round(item.colorPercentage)}%) • <span>${item.pricePerPage} ৳/page</span>
                     </div>
                 ` : ''}
             </div>
@@ -267,7 +278,7 @@ function updateUI() {
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'btn-remove';
-        removeBtn.textContent = 'Remove';
+        removeBtn.innerHTML = '<i class="ph ph-x"></i>';
         removeBtn.onclick = () => { selectedFiles.splice(index, 1); updateUI(); };
 
         div.appendChild(header);
@@ -275,10 +286,8 @@ function updateUI() {
         div.appendChild(removeBtn);
         filesList.appendChild(div);
 
-        // Cost Calculation
         let rawTotal = parseInt(item.pageCount);
         if (isNaN(rawTotal)) rawTotal = 1;
-
         let estimatedPages = rawTotal;
 
         if (item.range && item.range.includes('-')) {
@@ -305,14 +314,10 @@ function updateUI() {
     }
 
     currentTotalCost = grandTotalCost;
-
     document.getElementById('totalCost').textContent = currentTotalCost;
     document.getElementById('payAmountDisplay').textContent = currentTotalCost;
 }
 
-// ===============================================
-// GLOBAL HELPER FUNCTIONS
-// ===============================================
 window.updateFileSetting = function (index, key, value) {
     selectedFiles[index][key] = value;
     updateUI();
@@ -328,16 +333,11 @@ window.updatePrintMode = function (index, mode) {
     updateUI();
 };
 
-// ===============================================
-// PDF PAGE COUNT ESTIMATOR
-// ===============================================
 async function estimatePageCount() {
     for (let item of selectedFiles) {
         if (item.file.name.toLowerCase().endsWith('.pdf') && item.pageCount === '...') {
             try {
-                if (typeof pdfjsLib === 'undefined') {
-                    await new Promise(r => setTimeout(r, 1000));
-                }
+                if (typeof pdfjsLib === 'undefined') await new Promise(r => setTimeout(r, 1000));
                 if (typeof pdfjsLib !== 'undefined') {
                     const buff = await item.file.arrayBuffer();
                     const pdf = await pdfjsLib.getDocument({ data: buff }).promise;
@@ -345,26 +345,23 @@ async function estimatePageCount() {
                 } else {
                     item.pageCount = '?';
                 }
-            } catch (e) {
-                item.pageCount = '?';
-            }
+            } catch (e) { item.pageCount = '?'; }
         }
     }
     updateUI();
 }
 
-// ===============================================
-// BUTTON EVENT HANDLERS
-// ===============================================
 clearBtn.onclick = () => { selectedFiles = []; updateUI(); };
 cancelPaymentBtn.onclick = () => paymentSection.classList.remove('show');
 
-// ===============================================
-// FORM SUBMIT HANDLER
-// ===============================================
-uploadForm.addEventListener('submit', (e) => {
+uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    if (!currentJWT) {
+        showMessage('⚠️ Authentication connecting. Please try again.', 'error');
+        await authenticateWebClient();
+        return;
+    }
     if (submitBtn.disabled) return;
 
     if (collectLaterInput.checked) {
@@ -372,33 +369,24 @@ uploadForm.addEventListener('submit', (e) => {
             return showMessage('Collect Later সিলেক্ট করলে নাম এবং আইডি দিতেই হবে!', 'error');
         }
     }
-
-    if (selectedFiles.length === 0) {
-        return showMessage('Please upload at least one file!', 'error');
-    }
+    if (selectedFiles.length === 0) return showMessage('Please upload at least one file!', 'error');
 
     trxIdInput.value = '';
-
     const nagadWrapper = document.getElementById('nagadWrapper');
     const nagadMsg = document.getElementById('nagadLowAmountMsg');
 
     if (currentTotalCost < 10) {
         nagadWrapper.style.display = 'none';
-        nagadMsg.style.display = 'block';
+        nagadMsg.style.display = 'flex';
     } else {
         nagadWrapper.style.display = 'block';
         nagadMsg.style.display = 'none';
     }
-
     paymentSection.classList.add('show');
 });
 
-// ===============================================
-// PAYMENT VERIFICATION HANDLER (SOLVED: PDF GENERATION)
-// ===============================================
 verifyBtn.onclick = async () => {
     const trxId = trxIdInput.value.trim();
-
     if (!trxId) return showMessage('Please enter Transaction ID!', 'error');
 
     const originalBtnText = verifyBtn.innerHTML;
@@ -406,106 +394,59 @@ verifyBtn.onclick = async () => {
     verifyBtn.innerHTML = `<div class="btn-spinner"></div> Verifying...`;
 
     try {
-        // STEP 1: VERIFY PAYMENT
-        const verifyUrl = `${CENTRAL_SERVER}/verify-payment`;
-
-        const verifyRes = await fetch(verifyUrl, {
+        const verifyRes = await fetch(VERIFY_PAYMENT_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify({
-                trx_id: trxId,
-                amount: currentTotalCost
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trx_id: trxId, amount: currentTotalCost })
         });
-
         const verifyResult = await verifyRes.json();
 
         if (!verifyRes.ok) {
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = originalBtnText;
-
             if (verifyResult.error_type === 'underpayment') {
-                alert(verifyResult.message + "\n\nসমস্যা হলে যোগাযোগ করুন: 01771080238 (WhatsApp)");
+                alert(verifyResult.message + "\n\nসমস্যা হলে WhatsApp যোগাযোগ করুন");
             } else {
                 showMessage(verifyResult.message + supportMsg, 'error');
             }
             return;
         }
 
-        if (verifyResult.warning) {
-            alert(verifyResult.message);
-        }
+        if (verifyResult.warning) alert(verifyResult.message);
 
-        // STEP 2: UPLOAD FILES
         verifyBtn.innerHTML = `<div class="btn-spinner"></div> Uploading...`;
         loading.classList.add('show');
 
         const formData = new FormData();
         const finalUserName = collectLaterInput.checked ? userNameInput.value.trim() : 'Unknown';
         const finalStudentId = collectLaterInput.checked ? studentIdInput.value.trim() : 'N/A';
-
-        // Prepare Base Settings Array
+        const sendCollectLaterFlag = collectLaterInput.checked;
         let settingsData = [];
 
-        // 1. Add User Files FIRST
         selectedFiles.forEach(item => {
             formData.append('files', item.file);
-
             settingsData.push({
                 fileName: item.file.name,
                 range: item.range,
                 copies: item.copies,
-                color: item.printMode,
+                print_mode: item.printMode,
                 cost: item.calculatedCost || 0,
                 pages: item.pageCount
             });
         });
 
-        // 2. Add Collect Later Slip LAST (As a PDF!)
-        let sendCollectLaterFlag = collectLaterInput.checked;
-
-        if (collectLaterInput.checked) {
-            // Check if jsPDF is loaded
-            if (!window.jspdf) {
-                // Fallback wait if library is loading
-                await new Promise(r => setTimeout(r, 1000));
-            }
-
-            // Generate slip as PDF Blob (Small size, but PDF type)
-            const slipPdfBlob = await createSlipPDF(finalUserName, finalStudentId, trxId);
-
-            // Name it 'z_Collect_Later.pdf' to ensure Z sorting
-            const slipFileName = "z_Collect_Later.pdf";
-
-            formData.append('files', slipPdfBlob, slipFileName);
-
-            settingsData.push({
-                fileName: slipFileName,
-                range: "",
-                copies: 1,
-                color: 'bw',
-                cost: 1,
-                pages: 1
-            });
-
-            sendCollectLaterFlag = false;
-        }
-
-        // Attach Settings & Metadata
         formData.append('fileSettings', JSON.stringify(settingsData));
-        formData.append('userName', finalUserName);
-        formData.append('studentId', finalStudentId);
-        formData.append('location', printerLocation);
-        formData.append('trxId', trxId);
+        formData.append('location', printerLocationSelect.value); 
+        formData.append('trx_id', trxId); 
         formData.append('totalCost', currentTotalCost);
         formData.append('collectLater', sendCollectLaterFlag);
+        formData.append('payment_method', 'instant'); 
+        formData.append('cover_name', finalUserName);
+        formData.append('cover_id', finalStudentId);
 
-        // Upload to server
         const uploadRes = await fetch(SERVER_UPLOAD_URL, {
             method: 'POST',
+            headers: { 'Authorization': `Bearer ${currentJWT}` },
             body: formData
         });
 
@@ -514,17 +455,21 @@ verifyBtn.onclick = async () => {
         verifyBtn.innerHTML = originalBtnText;
 
         if (uploadRes.ok) {
-            showMessage(`✅ Order Verified! প্রিন্টারে লাল আলো জ্বললে কাগজ লোড করে ব্লিঙ্ক করা বাটনটি চাপুন। অন্যথায় অপেক্ষা করুন। প্রয়োজনে WhatsApp করুন।`, 'success', 30000);
-
+            showMessage(`✅ Order Verified! প্রিন্টারে লাল আলো জ্বললে কাগজ লোড করে ব্লিঙ্ক করা বাটনটি চাপুন।`, 'success', 30000);
             selectedFiles = [];
             collectLaterInput.checked = false;
             toggleUserInfo();
             paymentSection.classList.remove('show');
             uploadForm.reset();
         } else {
-            showMessage('❌ ফাইল আপলোড হয়নি!' + supportMsg, 'error');
+            const errorMsg = await uploadRes.json();
+            if(uploadRes.status === 401) {
+                await authenticateWebClient();
+                showMessage(`⚠️ Session refreshed. Please click "Verify & Proceed" again.`, 'error');
+            } else {
+                showMessage(`❌ আপলোড ব্যর্থ: ${errorMsg.error || 'ফাইল আপলোড হয়নি!'}` + supportMsg, 'error');
+            }
         }
-
     } catch (err) {
         verifyBtn.disabled = false;
         verifyBtn.innerHTML = originalBtnText;
@@ -534,116 +479,21 @@ verifyBtn.onclick = async () => {
     }
 };
 
-// ===============================================
-// NEW HELPER: CREATE SLIP **PDF**
-// Generates a PDF File instead of an Image
-// Solves: File Size Issue & Sorting Issue
-// ===============================================
-async function createSlipPDF(name, id, trx) {
-    // 1. Create a temporary canvas for visual
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    // Low resolution is fine for PDF embedding (keeps size small)
-    canvas.width = 600;
-    canvas.height = 400;
-
-    // White background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Border
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-
-    // Text Styles
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-
-    // Branding (ZeroTouch)
-    ctx.font = 'bold italic 40px Arial';
-    ctx.fillText("ZeroTouch", canvas.width / 2, 55);
-
-    // Header
-    ctx.font = 'bold 22px Arial';
-    ctx.fillText("COLLECT LATER SLIP", canvas.width / 2, 90);
-
-    // Date
-    ctx.font = '16px Arial';
-    ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 115);
-
-    // Divider
-    ctx.beginPath();
-    ctx.moveTo(40, 130);
-    ctx.lineTo(canvas.width - 40, 130);
-    ctx.stroke();
-
-    // Details
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 24px Arial';
-
-    let y = 180;
-    ctx.fillText(`Name: ${name}`, 50, y);
-    y += 50;
-    ctx.fillText(`Student ID: ${id}`, 50, y);
-    y += 50;
-    ctx.fillText(`Trx ID: ${trx}`, 50, y);
-
-    // Footer
-    ctx.font = 'italic 18px Arial';
-    ctx.fillStyle = '#555555';
-    ctx.textAlign = 'center';
-    ctx.fillText("Please keep this slip for collection.", canvas.width / 2, 350);
-
-    // 2. Convert Canvas to JPEG Data URL
-    const imgData = canvas.toDataURL('image/jpeg', 0.8);
-
-    // 3. Create PDF using jsPDF
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [600, 400]
-    });
-
-    doc.addImage(imgData, 'JPEG', 0, 0, 600, 400);
-
-    // 4. Return as Blob
-    return doc.output('blob');
-}
-
-// ===============================================
-// TOAST MESSAGE FUNCTION
-// ===============================================
-function showMessage(t, type) {
+function showMessage(t, type, overrideTime) {
     messageDiv.innerHTML = t;
     messageDiv.className = 'toast show ' + type;
-    let time = type === 'error' ? 8000 : 4000;
+    let time = overrideTime || (type === 'error' ? 8000 : 4000);
     setTimeout(() => messageDiv.className = 'toast', time);
 }
-
-// Initialize state
 toggleUserInfo();
-
-// ===============================================
-// COLOR COVERAGE ANALYSIS FUNCTIONS
-// ===============================================
 
 async function analyzeColorCoverage(file) {
     try {
-        if (file.type.startsWith('image/')) {
-            return await analyzeImageColor(file);
-        } else if (file.type === 'application/pdf') {
-            return await analyzePDFColor(file);
-        }
+        if (file.type.startsWith('image/')) return await analyzeImageColor(file);
+        else if (file.type === 'application/pdf') return await analyzePDFColor(file);
         return { colorPercentage: 0, pricePerPage: 2 };
-    } catch (error) {
-        console.error('Color analysis error:', error);
-        return { colorPercentage: 0, pricePerPage: 2 };
-    }
+    } catch (error) { return { colorPercentage: 0, pricePerPage: 2 }; }
 }
-
 async function analyzeImageColor(imageFile) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -652,22 +502,19 @@ async function analyzeImageColor(imageFile) {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const maxSize = 200;
-                const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                const scale = Math.min(200 / img.width, 200 / img.height);
                 canvas.width = img.width * scale;
                 canvas.height = img.height * scale;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const colorPercentage = calculateColorPercentage(imageData);
-                const pricePerPage = getPriceFromColorPercentage(colorPercentage);
-                resolve({ colorPercentage, pricePerPage });
+                resolve({ colorPercentage, pricePerPage: getPriceFromColorPercentage(colorPercentage) });
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(imageFile);
     });
 }
-
 async function analyzePDFColor(pdfFile) {
     try {
         const arrayBuffer = await pdfFile.arrayBuffer();
@@ -682,63 +529,32 @@ async function analyzePDFColor(pdfFile) {
             canvas.width = viewport.width;
             canvas.height = viewport.height;
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            totalColorPercentage += calculateColorPercentage(imageData);
+            totalColorPercentage += calculateColorPercentage(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
         const avgColorPercentage = totalColorPercentage / pagesToSample;
-        const pricePerPage = getPriceFromColorPercentage(avgColorPercentage);
-        return { colorPercentage: avgColorPercentage, pricePerPage };
-    } catch (error) {
-        console.error('PDF color analysis error:', error);
-        return { colorPercentage: 0, pricePerPage: 2 };
-    }
+        return { colorPercentage: avgColorPercentage, pricePerPage: getPriceFromColorPercentage(avgColorPercentage) };
+    } catch (error) { return { colorPercentage: 0, pricePerPage: 2 }; }
 }
-
 function calculateColorPercentage(imageData) {
     const pixels = imageData.data;
-    let colorPixels = 0;
-    let totalPixels = 0;
+    let colorPixels = 0, totalPixels = 0;
     for (let i = 0; i < pixels.length; i += 16) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        const maxChannel = Math.max(r, g, b);
-        const minChannel = Math.min(r, g, b);
-        const saturation = maxChannel - minChannel;
-        if (saturation > 15 && maxChannel > 30) {
-            colorPixels++;
-        }
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        if (max - min > 15 && max > 30) colorPixels++;
         totalPixels++;
     }
     return (colorPixels / totalPixels) * 100;
 }
-
-function getPriceFromColorPercentage(colorPercentage) {
-    if (colorPercentage < 40) return 3;
-    if (colorPercentage < 70) return 4;
-    if (colorPercentage < 90) return 5;
+function getPriceFromColorPercentage(c) {
+    if (c < 40) return 3;
+    if (c < 70) return 4;
+    if (c < 90) return 5;
     return 6;
 }
-
-function getColorTierLabel(percentage) {
-    if (percentage < 40) return 'Light Color';
-    if (percentage < 70) return 'Medium Color';
-    if (percentage < 90) return 'Heavy Color';
+function getColorTierLabel(p) {
+    if (p < 40) return 'Light Color';
+    if (p < 70) return 'Medium Color';
+    if (p < 90) return 'Heavy Color';
     return 'Full Color';
 }
-
-// ===============================================
-// MAINTENANCE MODE HANDLER
-// ===============================================
-(function checkMaintenanceMode() {
-    const maintenanceScreen = document.getElementById('maintenanceScreen');
-    const mainContainer = document.querySelector('.main-container');
-
-    if (MAINTENANCE_MODE) {
-        maintenanceScreen.style.display = 'flex';
-        mainContainer.style.display = 'none';
-    } else {
-        maintenanceScreen.style.display = 'none';
-        mainContainer.style.display = 'block';
-    }
-})();

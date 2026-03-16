@@ -4,24 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Touch</title>
+    <title>Zero Touch | Smart Printing</title>
     <link rel="icon" type="image/x-icon" href="assets/web_fav.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <div class="main-container">
-        <div class="card">
+        <div class="card main-card">
             <div class="header">
                 <div class="himg">
-                    <img class="fav" src="assets/web_fav.png" alt="">
-                    <h1> Zero Touch</h1>
+                    <img class="fav" src="assets/web_fav.png" alt="Zero Touch Logo">
+                    <h1>Zero Touch</h1>
                 </div>
-                <p>Remote Document Printing Portal</p>
+                <p class="subtitle">Remote Document Printing Portal</p>
 
-                <!-- Social Links -->
                 <div class="social-links">
                     <a href="https://www.facebook.com/profile.php?id=61586137062963" target="_blank"
                         rel="noopener noreferrer" class="social-link facebook">
@@ -39,14 +38,12 @@
             <div class="content">
                 <form id="uploadForm">
 
-                    <div class="pickup-option-container" style="margin-bottom: 20px;">
+                    <div class="pickup-option-container">
                         <label class="pickup-label">
                             <input type="checkbox" id="collectLater" class="pickup-checkbox">
                             <span class="pickup-text">
                                 <strong>Collect Later? (পরে নিবেন?)</strong>
                                 <br><small>এখন ব্যস্ত? পরে এসে কাগজ নিতে চাইলে টিক দিন।</small>
-                                <!--                                <br><small>Collect Later feature has a little problem now. Collect later slip will be under all your files.</small>-->
-                                <!--                                <br><small>This will be fixed shortly, In sha Allah</small>-->
                             </span>
                         </label>
                     </div>
@@ -64,37 +61,45 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="section-label"><i class="ph ph-map-pin"></i> Printer Location</label>
-                        <div class="fixed-location">
-                            <i class="ph-fill ph-house-line"></i> Male Hall 2 (Shaheed Osman Hadi Hall)
+                    <div class="form-group location-group">
+                        <label class="section-label"><i class="ph ph-map-pin"></i> Select Printer Location</label>
+                        <div class="select-wrapper">
+                            <select id="printerLocation" class="ctrl-select premium-select">
+                                <option value="shaheed_hadi_hall">Male Hall 2 (Shaheed Osman Hadi Hall)</option>
+                                <option value="zia_hall">Ziaur Rahman Hall</option>
+                                <option value="shere_bangla_hall">Sher-e-Bangla Hall</option>
+                                <option value="female_hall">Female Hall</option>
+                            </select>
                         </div>
-                        <input type="hidden" id="printerLocation" value="shaheed_hadi_hall">
                     </div>
 
                     <div class="upload-area">
                         <input type="file" id="fileInput" multiple required accept=".pdf,.jpg,.jpeg,.png"
                             class="file-input-hidden">
                         <label for="fileInput" class="upload-label">
-                            <i class="ph ph-cloud-arrow-up icon"></i>
+                            <div class="upload-icon-wrapper">
+                                <i class="ph ph-cloud-arrow-up icon"></i>
+                            </div>
                             <span class="main-text">Click to upload files</span>
-                            <span class="sub-text">PDF, Images (Max 10MB)</span>
-                            <span class="sub-text">Only A4 size</span>
+                            <span class="sub-text">PDF & Images (Max 10MB)</span>
+                            <span class="sub-text tag-text">A4 Size Only</span>
                         </label>
                     </div>
 
                     <div id="filesList" class="files-list"></div>
 
                     <div class="cost-summary">
-                        <span>Total Estimated Cost:</span>
-                        <span class="cost-amount"><span id="totalCost">0</span> Taka</span>
+                        <span class="cost-label">Total Estimated Cost</span>
+                        <span class="cost-amount"><span id="totalCost">0</span> ৳</span>
                     </div>
 
                     <div class="actions">
-                        <button type="button" id="clearBtn" class="btn btn-secondary"><i class="ph ph-trash"></i>
-                            Clear</button>
-                        <button type="submit" id="submitBtn" class="btn btn-primary">Proceed to Payment <i
-                                class="ph ph-arrow-right"></i></button>
+                        <button type="button" id="clearBtn" class="btn btn-secondary">
+                            <i class="ph ph-trash"></i> Clear
+                        </button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary">
+                            Proceed to Payment <i class="ph ph-arrow-right"></i>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -112,10 +117,11 @@
                     <div id="nagadWrapper">
                         <div class="number-box nagad">
                             <div class="nb-top">
-                                <span class="provider">Nagad</span>
-                                <span class="number">01771080238</span>
-                                <i class="ph ph-copy copy-icon"
-                                    onclick="navigator.clipboard.writeText('01771080238'); alert('Nagad Number Copied!')"></i>
+                                <span class="provider">
+                                    <img src="https://download.logo.wine/logo/nagad/nagad-logo.png" alt="Nagad" style="height: 24px; filter: brightness(0) invert(1);">
+                                </span>
+                                <span class="number" id="nagadNumber">01716897644</span>
+                                <i class="ph ph-copy copy-icon" id="nagadCopyIcon" title="Copy Number"></i>
                             </div>
                             <div class="nb-bottom">
                                 <small>চার্জ এড়াতে নম্বরটি 'Priyo' করে নিন</small>
@@ -123,17 +129,18 @@
                         </div>
                     </div>
 
-                    <div id="nagadLowAmountMsg"
-                        style="display:none; color: #b91c1c; font-size: 0.85rem; margin-bottom: 10px; text-align: center; background: #fef2f2; padding: 10px; border-radius: 8px; border: 1px solid #fca5a5;">
-                        ⚠️ ১০ টাকার কম হলে নগদ এ সেন্ড মানি করা যায় না। অনুগ্রহ করে বিকাশ ব্যবহার করুন।
+                    <div id="nagadLowAmountMsg" class="low-amount-warning">
+                        <i class="ph-fill ph-warning-circle"></i> 
+                        <span>১০ টাকার কম হলে নগদ এ সেন্ড মানি করা যায় না। অনুগ্রহ করে বিকাশ ব্যবহার করুন।</span>
                     </div>
 
                     <div class="number-box bkash">
                         <div class="nb-top">
-                            <span class="provider">bKash</span>
-                            <span class="number">01890386751</span>
-                            <i class="ph ph-copy copy-icon"
-                                onclick="navigator.clipboard.writeText('01890386751'); alert('bKash Number Copied!')"></i>
+                            <span class="provider">
+                                <img src="https://download.logo.wine/logo/bkash/bkash-logo.png" alt="bKash" style="height: 24px; filter: brightness(0) invert(1);">
+                            </span>
+                            <span class="number" id="bkashNumber">01716897644</span>
+                            <i class="ph ph-copy copy-icon" id="bkashCopyIcon" title="Copy Number"></i>
                         </div>
                         <div class="nb-bottom">
                             <small>ফ্রি সেন্ড মানি করতে নম্বরটি 'Priyo' করুন</small>
@@ -141,10 +148,9 @@
                     </div>
 
                     <div class="warning-box">
-                        <i class="ph ph-warning-circle"></i>
-                        <div>
-                            <strong>IMPORTANT:</strong> Pay exactly <strong><span id="payAmountDisplay">0</span>
-                                Tk</strong>.
+                        <div class="warning-icon"><i class="ph ph-warning-circle"></i></div>
+                        <div class="warning-text">
+                            <strong>IMPORTANT:</strong> Pay exactly <strong class="highlight-amt"><span id="payAmountDisplay">0</span> Tk</strong>.
                             <br>Do not pay less or more.
                         </div>
                     </div>
@@ -152,49 +158,51 @@
                     <div class="payment-inputs-row">
                         <div class="input-wrapper" style="width: 100%;">
                             <label>Transaction ID (TrxID)</label>
-                            <input type="text" id="trxId" class="ctrl-input" placeholder="e.g. 9G7HG..." required>
+                            <input type="text" id="trxId" class="ctrl-input trx-input" placeholder="e.g. 9G7HG..." required>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button class="pay-btn verify-btn" id="verifyBtn">Verify & Proceed</button>
+                    <button class="pay-btn verify-btn" id="verifyBtn">
+                        <i class="ph-bold ph-check-circle"></i> Verify & Proceed
+                    </button>
                     <button class="btn-text" id="cancelPayment">Cancel</button>
                 </div>
             </div>
         </div>
 
         <div id="loading" class="loading-overlay">
-            <div class="spinner"></div>
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+            </div>
             <p>Sending File to Printer...</p>
         </div>
 
         <div id="message" class="toast"></div>
 
-        <!-- WhatsApp Contact Section -->
         <div class="whatsapp-contact-section">
             <div class="whatsapp-header">
-                <i class="ph-fill ph-whatsapp-logo"></i>
+                <div class="wa-icon-pulse"><i class="ph-fill ph-whatsapp-logo"></i></div>
                 <h3>Contact us on WhatsApp</h3>
             </div>
             <div class="whatsapp-numbers">
-                <a href="https://wa.me/8801771080238" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
+                <a href="https://wa.me/8801716897644" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
                     <i class="ph-fill ph-whatsapp-logo"></i>
-                    <span>01771080238</span>
-                    <i class="ph ph-arrow-right"></i>
+                    <span>01716897644</span>
+                    <i class="ph-bold ph-caret-right"></i>
                 </a>
                 <a href="https://wa.me/8801568550778" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
                     <i class="ph-fill ph-whatsapp-logo"></i>
                     <span>01568550778</span>
-                    <i class="ph ph-arrow-right"></i>
-                </a>
-                <a href="https://wa.me/8801716897644" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
-                    <i class="ph-fill ph-whatsapp-logo"></i>
-                    <span>01716897644</span>
-                    <i class="ph ph-arrow-right"></i>
+                    <i class="ph-bold ph-caret-right"></i>
                 </a>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
