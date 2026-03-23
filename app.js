@@ -58,7 +58,10 @@ async function authenticateWebClient() {
         console.log("🔄 Fetching Web Guest Token...");
         const res = await fetch(`${CENTRAL_SERVER}/api/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': '69420'
+            },
             body: JSON.stringify({ email: WEB_GUEST_EMAIL, password: WEB_GUEST_PASS })
         });
 
@@ -116,7 +119,11 @@ function updatePaymentNumbers() {
 async function checkPrinterStatus() {
     const locationId = printerLocationSelect.value;
     try {
-        const res = await fetch(`${CENTRAL_SERVER}/status/${locationId}?t=${Date.now()}`);
+        const res = await fetch(`${CENTRAL_SERVER}/status/${locationId}?t=${Date.now()}`, {
+            headers: {
+                'ngrok-skip-browser-warning': '69420'
+            }
+        });
         if (res.ok) {
             const data = await res.json();
             if (!data.printer_online) {
@@ -396,7 +403,10 @@ verifyBtn.onclick = async () => {
     try {
         const verifyRes = await fetch(VERIFY_PAYMENT_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': '69420'
+             },
             body: JSON.stringify({ trx_id: trxId, amount: currentTotalCost })
         });
         const verifyResult = await verifyRes.json();
@@ -446,7 +456,10 @@ verifyBtn.onclick = async () => {
 
         const uploadRes = await fetch(SERVER_UPLOAD_URL, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${currentJWT}` },
+            headers: { 
+                'Authorization': `Bearer ${currentJWT}`,
+                'ngrok-skip-browser-warning': '69420'
+            },
             body: formData
         });
 
