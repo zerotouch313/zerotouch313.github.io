@@ -32,7 +32,7 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     padding: 20px;
 }
@@ -40,7 +40,7 @@ body {
 .main-container {
     width: 100%;
     max-width: 520px;
-    perspective: 1000px;
+    margin: auto 0;
 }
 
 /* =============================================== */
