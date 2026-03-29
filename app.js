@@ -100,7 +100,7 @@ function updatePaymentNumbers() {
     if (loc === 'zia_hall' || loc === 'shaheed_hadi_hall') {
         bkashNum = '01716897644';
         nagadNum = '01716897644';
-    } else if (loc === 'female_hall' || loc === 'shere_bangla_hall') {
+    } else if (loc === 'female_hall' || loc === 'sher_e_bangla_hall') {
         bkashNum = '01568550778';
         nagadNum = '01956018657';
     }
