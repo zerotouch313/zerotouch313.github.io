@@ -91,6 +91,8 @@ document.querySelector('.content').insertBefore(statusBanner, uploadForm);
 // ===============================================
 function updatePaymentNumbers() {
     const loc = printerLocationSelect.value;
+    if (!loc) return; // Skip if no location selected
+
     let bkashNum = '';
     let nagadNum = '';
 
@@ -118,6 +120,10 @@ function updatePaymentNumbers() {
 
 async function checkPrinterStatus() {
     const locationId = printerLocationSelect.value;
+    if (!locationId) {
+        hideStatusError();
+        return;
+    }
     try {
         const res = await fetch(`${CENTRAL_SERVER}/status/${locationId}?t=${Date.now()}`, {
             headers: {
@@ -361,8 +367,43 @@ async function estimatePageCount() {
 clearBtn.onclick = () => { selectedFiles = []; updateUI(); };
 cancelPaymentBtn.onclick = () => paymentSection.classList.remove('show');
 
+// Validation Bubble Logic
+const validationBubble = document.createElement('div');
+validationBubble.className = 'validation-bubble';
+validationBubble.innerHTML = '<i class="ph-fill ph-warning-circle"></i> Please select a printer location first!';
+document.querySelector('.select-wrapper').appendChild(validationBubble);
+
+function showLocationError() {
+    const wrapper = document.querySelector('.select-wrapper');
+    const select = document.getElementById('printerLocation');
+    
+    // Scroll to location group
+    document.querySelector('.location-group').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Show error visual state
+    select.classList.add('error-glow', 'shake');
+    validationBubble.classList.add('show');
+    
+    // Remove after delay or on change
+    setTimeout(() => {
+        select.classList.remove('shake');
+    }, 500);
+
+    const removeError = () => {
+        select.classList.remove('error-glow');
+        validationBubble.classList.remove('show');
+        select.removeEventListener('change', removeError);
+    };
+    select.addEventListener('change', removeError);
+}
+
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (!printerLocationSelect.value) {
+        showLocationError();
+        return;
+    }
 
     if (!currentJWT) {
         showMessage('⚠️ Authentication connecting. Please try again.', 'error');
