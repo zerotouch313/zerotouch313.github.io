@@ -216,10 +216,7 @@ fileInput.addEventListener('change', async (e) => {
             range: '',
             printMode: 'bw',
             pageCount: f.name.toLowerCase().endsWith('.pdf') ? '...' : 1,
-            colorPercentage: colorAnalysis.colorPercentage,
-            detectedPricePerPage: colorAnalysis.pricePerPage,
-            colorTier: getColorTierLabel(colorAnalysis.colorPercentage),
-            pricePerPage: 2
+            colorPercentage: colorAnalysis.colorPercentage
         });
     }
 
@@ -265,6 +262,8 @@ function updateUI() {
             </div>`;
         }
 
+        const costPerSheet = getPriceFromCoverage(item.colorPercentage, item.printMode);
+
         settingsDiv.innerHTML = `
             ${totalPagesInput}
             ${rangeInput}
@@ -278,14 +277,12 @@ function updateUI() {
                 <label>Print Mode</label>
                 <select onchange="updatePrintMode(${index}, this.value)" 
                         class="ctrl-select mode-select ${item.printMode === 'color' ? 'color-active' : ''}">
-                    <option value="bw" ${item.printMode === 'bw' ? 'selected' : ''}>Black & White (2৳)</option>
-                    <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color (Auto Detect)</option>
+                    <option value="bw" ${item.printMode === 'bw' ? 'selected' : ''}>Black & White</option>
+                    <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color</option>
                 </select>
-                ${item.printMode === 'color' ? `
-                    <div class="color-badge">
-                        ${item.colorTier} (${Math.round(item.colorPercentage)}%) • <span>${item.pricePerPage} ৳/page</span>
-                    </div>
-                ` : ''}
+                <div class="color-badge" ${item.printMode === 'bw' ? 'style="color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1;"' : ''}>
+                    Coverage: ${Math.round(item.colorPercentage)}% • <span>${costPerSheet.toFixed(2)} ৳/page</span>
+                </div>
             </div>
         `;
 
@@ -315,7 +312,6 @@ function updateUI() {
             estimatedPages = 1;
         }
 
-        const costPerSheet = item.pricePerPage || 2;
         const fileCost = estimatedPages * item.copies * costPerSheet;
         item.calculatedCost = fileCost;
 
@@ -326,9 +322,9 @@ function updateUI() {
         grandTotalCost += 1;
     }
 
-    currentTotalCost = grandTotalCost;
-    document.getElementById('totalCost').textContent = currentTotalCost;
-    document.getElementById('payAmountDisplay').textContent = currentTotalCost;
+    currentTotalCost = parseFloat(grandTotalCost.toFixed(2));
+    document.getElementById('totalCost').textContent = currentTotalCost.toFixed(2);
+    document.getElementById('payAmountDisplay').textContent = currentTotalCost.toFixed(2);
 }
 
 window.updateFileSetting = function (index, key, value) {
@@ -338,11 +334,6 @@ window.updateFileSetting = function (index, key, value) {
 
 window.updatePrintMode = function (index, mode) {
     selectedFiles[index].printMode = mode;
-    if (mode === 'bw') {
-        selectedFiles[index].pricePerPage = 2;
-    } else {
-        selectedFiles[index].pricePerPage = selectedFiles[index].detectedPricePerPage;
-    }
     updateUI();
 };
 
@@ -541,13 +532,17 @@ function showMessage(t, type, overrideTime) {
 }
 toggleUserInfo();
 
+// ===============================================
+// DYNAMIC COVERAGE PRICING LOGIC
+// ===============================================
 async function analyzeColorCoverage(file) {
     try {
         if (file.type.startsWith('image/')) return await analyzeImageColor(file);
         else if (file.type === 'application/pdf') return await analyzePDFColor(file);
-        return { colorPercentage: 0, pricePerPage: 2 };
-    } catch (error) { return { colorPercentage: 0, pricePerPage: 2 }; }
+        return { colorPercentage: 0 };
+    } catch (error) { return { colorPercentage: 0 }; }
 }
+
 async function analyzeImageColor(imageFile) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -561,19 +556,19 @@ async function analyzeImageColor(imageFile) {
                 canvas.height = img.height * scale;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const colorPercentage = calculateColorPercentage(imageData);
-                resolve({ colorPercentage, pricePerPage: getPriceFromColorPercentage(colorPercentage) });
+                resolve({ colorPercentage: calculateCoveragePercentage(imageData) });
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(imageFile);
     });
 }
+
 async function analyzePDFColor(pdfFile) {
     try {
         const arrayBuffer = await pdfFile.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let totalColorPercentage = 0;
+        let totalCoveragePercentage = 0;
         const pagesToSample = Math.min(3, pdf.numPages);
         for (let i = 1; i <= pagesToSample; i++) {
             const page = await pdf.getPage(i);
@@ -583,32 +578,38 @@ async function analyzePDFColor(pdfFile) {
             canvas.width = viewport.width;
             canvas.height = viewport.height;
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-            totalColorPercentage += calculateColorPercentage(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            totalCoveragePercentage += calculateCoveragePercentage(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
-        const avgColorPercentage = totalColorPercentage / pagesToSample;
-        return { colorPercentage: avgColorPercentage, pricePerPage: getPriceFromColorPercentage(avgColorPercentage) };
-    } catch (error) { return { colorPercentage: 0, pricePerPage: 2 }; }
+        return { colorPercentage: totalCoveragePercentage / pagesToSample };
+    } catch (error) { return { colorPercentage: 0 }; }
 }
-function calculateColorPercentage(imageData) {
+
+function calculateCoveragePercentage(imageData) {
     const pixels = imageData.data;
-    let colorPixels = 0, totalPixels = 0;
-    for (let i = 0; i < pixels.length; i += 16) {
-        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        if (max - min > 15 && max > 30) colorPixels++;
+    let inkPixels = 0, totalPixels = 0;
+    for (let i = 0; i < pixels.length; i += 16) { // Step by 4 pixels for performance
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2], a = pixels[i + 3];
+        // Ignore highly transparent pixels
+        if (a > 20) {
+            // Count as "ink coverage" if it's significantly darker than pure white
+            if ((r + g + b) / 3 < 240) {
+                inkPixels++;
+            }
+        }
         totalPixels++;
     }
-    return (colorPixels / totalPixels) * 100;
+    return totalPixels === 0 ? 0 : (inkPixels / totalPixels) * 100;
 }
-function getPriceFromColorPercentage(c) {
-    if (c < 40) return 3;
-    if (c < 70) return 4;
-    if (c < 90) return 5;
-    return 6;
-}
-function getColorTierLabel(p) {
-    if (p < 40) return 'Light Color';
-    if (p < 70) return 'Medium Color';
-    if (p < 90) return 'Heavy Color';
-    return 'Full Color';
+
+function getPriceFromCoverage(coverage, mode) {
+    let basePrice = mode === 'color' ? 3.0 : 2.0;
+    let price = basePrice;
+    
+    // Increase price linearly up to +5.0/75.0 per extra coverage percent above 25%
+    if (coverage > 25) {
+        price += (coverage - 25) * (5.0 / 75.0);
+    }
+    
+    let maxPrice = mode === 'color' ? 8.0 : 7.0;
+    return Math.min(price, maxPrice);
 }
