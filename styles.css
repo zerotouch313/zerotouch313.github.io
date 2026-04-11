@@ -15,6 +15,10 @@
     --accent: #d1fae5;
     --nagad: #f97316;
     --bkash: #e11d48;
+    --alert: #f59e0b;
+    --alert-dark: #92400e;
+    --alert-light-bg: #fff7ed;
+    --alert-border: #fcd34d;
     --focus-ring: rgba(16, 185, 129, 0.25);
     --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
     --shadow-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
@@ -200,14 +204,14 @@ body {
     bottom: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%) translateY(10px);
-    background: #ef4444;
+    background: var(--alert);
     color: white;
     padding: 10px 16px;
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
-    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
     pointer-events: none;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -221,7 +225,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     border: 8px solid transparent;
-    border-top-color: #ef4444;
+    border-top-color: var(--alert);
 }
 
 .validation-bubble.show {
@@ -230,8 +234,8 @@ body {
 }
 
 .error-glow {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15) !important;
+    border-color: var(--alert) !important;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15) !important;
 }
 
 .shake {
@@ -367,7 +371,13 @@ body {
 }
 
 .page-display {
-    background: #f1f5f9;
+    /* match ctrl-input look so Pages box is responsive and consistent */
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -377,8 +387,13 @@ body {
 
 .range-input,
 .copies-input {
+    /* ensure inputs match ctrl-input visual style */
     text-align: center;
-    padding: 10px;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .flex-grow {
@@ -392,17 +407,17 @@ body {
 }
 
 .mode-select.color-active {
-    background-color: #fff1f2;
-    border-color: #fda4af;
-    color: #e11d48;
+    background-color: var(--alert-light-bg);
+    border-color: var(--alert-border);
+    color: var(--alert-dark);
 }
 
 .color-badge {
     margin-top: 8px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #e11d48;
-    background: #ffe4e6;
+    color: var(--alert-dark);
+    background: var(--alert-light-bg);
     padding: 6px;
     border-radius: 6px;
     text-align: center;
@@ -838,7 +853,7 @@ body {
 
 .offline-alert i {
     font-size: 2rem;
-    color: #ef4444;
+    color: var(--alert-dark);
 }
 
 .whatsapp-contact-section {

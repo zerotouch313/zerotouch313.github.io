@@ -281,7 +281,7 @@ function updateUI() {
                     <option value="color" ${item.printMode === 'color' ? 'selected' : ''}>Color</option>
                 </select>
                 <div class="color-badge" ${item.printMode === 'bw' ? 'style="color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1;"' : ''}>
-                    Coverage: ${Math.round(item.colorPercentage)}% • <span>${costPerSheet.toFixed(2)} ৳/page</span>
+                    Color Coverage: ${Math.round(item.colorPercentage)}% • <span>${costPerSheet.toFixed(2)} ৳/page</span>
                 </div>
             </div>
         `;
