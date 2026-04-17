@@ -2,7 +2,7 @@
 // ZERO TOUCH PRINTING PORTAL - MAIN APPLICATION
 // ===============================================
 
-const CENTRAL_SERVER = 'https://vulturelike-kyrie-unmoiled.ngrok-free.dev';
+const CENTRAL_SERVER = 'https://verily-odontoblastic-reese.ngrok-free.dev';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/api/print/upload`; 
 const VERIFY_PAYMENT_URL = `${CENTRAL_SERVER}/verify-payment`;
 
