@@ -22,7 +22,7 @@ if (typeof pdfjsLib !== 'undefined') {
     });
 }
 
-// DOM Elements
+// DOM
 const fileInput = document.getElementById('fileInput');
 const filesList = document.getElementById('filesList');
 const uploadForm = document.getElementById('uploadForm');
