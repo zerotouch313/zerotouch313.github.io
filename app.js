@@ -97,10 +97,10 @@ function updatePaymentNumbers() {
     let nagadNum = '';
 
     // Logic for Hall based Numbers
-    if (loc === 'zia_hall' || loc === 'shaheed_hadi_hall') {
+    if (loc === 'zia_hall' || loc === 'shaheed_hadi_hall' || loc === 'sher_e_bangla_hall') {
         bkashNum = '01716897644';
         nagadNum = '01716897644';
-    } else if (loc === 'female_hall' || loc === 'sher_e_bangla_hall') {
+    } else if (loc === 'female_hall') {
         bkashNum = '01568550778';
         nagadNum = '01956018657';
     }
