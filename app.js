@@ -46,9 +46,46 @@ const bkashNumberEl = document.getElementById('bkashNumber');
 const nagadNumberEl = document.getElementById('nagadNumber');
 const bkashCopyIcon = document.getElementById('bkashCopyIcon');
 const nagadCopyIcon = document.getElementById('nagadCopyIcon');
+const whatsappNumbersEl = document.getElementById('whatsappNumbers');
+const whatsappHeaderTextEl = document.getElementById('whatsappHeaderText');
 
 let selectedFiles = [];
 let currentTotalCost = 0;
+
+const LOCATION_CONTACT_MAP = {
+    zia_hall: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01716897644', '01568550778']
+    },
+    shahidul_ruet: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01716897644', '01568550778']
+    },
+    sher_e_bangla_hall: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01568550778']
+    },
+    male01_ruet: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01716897644', '01568550778']
+    },
+    shaheed_hadi_hall: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01568550778']
+    },
+    selim_ruet: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01716897644', '01568550778']
+    },
+    female01_ruet: {
+        payment: { bkash: '01568550778', nagad: '01956018657' },
+        whatsapp: ['01568550778']
+    },
+    female02_ruet: {
+        payment: { bkash: '01568550778', nagad: '01956018657' },
+        whatsapp: ['01568550778']
+    }
+};
 
 // ===============================================
 // 🔐 SILENT BACKGROUND AUTHENTICATION
@@ -91,31 +128,47 @@ document.querySelector('.content').insertBefore(statusBanner, uploadForm);
 // ===============================================
 function updatePaymentNumbers() {
     const loc = printerLocationSelect.value;
-    if (!loc) return; // Skip if no location selected
-
-    let bkashNum = '';
-    let nagadNum = '';
-
-    // Logic for Hall based Numbers
-    if (loc === 'zia_hall' || loc === 'shaheed_hadi_hall' || loc === 'sher_e_bangla_hall') {
-        bkashNum = '01716897644';
-        nagadNum = '01716897644';
-    } else if (loc === 'female_hall') {
-        bkashNum = '01568550778';
-        nagadNum = '01956018657';
-    }
+    const contactData = LOCATION_CONTACT_MAP[loc];
+    const bkashNum = contactData ? contactData.payment.bkash : 'Select a hall';
+    const nagadNum = contactData ? contactData.payment.nagad : 'Select a hall';
 
     bkashNumberEl.textContent = bkashNum;
     nagadNumberEl.textContent = nagadNum;
 
     bkashCopyIcon.onclick = () => {
+        if (!contactData) return showMessage('Please select a hall first.', 'error', 2000);
         navigator.clipboard.writeText(bkashNum);
         showMessage('✅ bKash Number Copied!', 'success', 2000);
     };
     nagadCopyIcon.onclick = () => {
+        if (!contactData) return showMessage('Please select a hall first.', 'error', 2000);
         navigator.clipboard.writeText(nagadNum);
         showMessage('✅ Nagad Number Copied!', 'success', 2000);
     };
+
+    updateWhatsAppContacts(contactData);
+}
+
+function updateWhatsAppContacts(contactData) {
+    if (!whatsappNumbersEl) return;
+
+    if (!contactData) {
+        whatsappNumbersEl.innerHTML = '<div class="whatsapp-empty-state">Select a hall to see the matching WhatsApp support contacts.</div>';
+        if (whatsappHeaderTextEl) {
+            whatsappHeaderTextEl.textContent = 'Contact us on WhatsApp';
+        }
+        return;
+    }
+
+    whatsappNumbersEl.innerHTML = contactData.whatsapp
+        .map((number) => `
+            <a href="https://wa.me/88${number}" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
+                <i class="ph-fill ph-whatsapp-logo"></i>
+                <span>${number}</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </a>
+        `)
+        .join('');
 }
 
 async function checkPrinterStatus() {

@@ -936,6 +936,16 @@ body {
     color: #94a3b8;
 }
 
+.whatsapp-empty-state {
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #64748b;
+    font-weight: 600;
+    text-align: center;
+}
+
 /* Loading & Toast */
 .loading-overlay {
     position: fixed;

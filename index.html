@@ -66,10 +66,14 @@
                         <div class="select-wrapper">
                             <select id="printerLocation" class="ctrl-select premium-select">
                                 <option value="" disabled selected>Select Printer Location</option>
-                                <option value="shaheed_hadi_hall">Male Hall 2 (Shaheed Osman Hadi Hall)</option>
-                                <option value="zia_hall">Shaheed Zia Hall</option>
-                                <option value="sher_e_bangla_hall">Sher-e-Bangla Hall</option>
-                                <option value="female_hall">Female Hall</option>
+                                <option value="zia_hall">Shaheed President Ziaur Rahman Hall</option>
+                                <option value="sher_e_bangla_hall">Sher-e-Bangla AK Fajlul Haque Hall</option>
+                                <option value="shahidul_ruet">Shaheed Shahidul Islam Hall</option>
+                                <option value="male01_ruet">Male Hall 01</option>
+                                <option value="shaheed_hadi_hall">Shaheed Osman Hadi Hall(Male Hall 02)</option>
+                                <option value="female01_ruet">Female Hall 01</option>
+                                <option value="female02_ruet">Female Hall 02</option>
+                                <option value="selim_ruet">Shaheed LT. Selim Hall</option>
                             </select>
                         </div>
                     </div>
@@ -121,7 +125,7 @@
                                 <span class="provider">
                                     <img src="assets/Nagad-Vertical-Logo.wine.svg" alt="Nagad" class="payment-logo">
                                 </span>
-                                <span class="number" id="nagadNumber">01716897644</span>
+                                <span class="number" id="nagadNumber">Select a hall</span>
                                 <i class="ph ph-copy copy-icon" id="nagadCopyIcon" title="Copy Number"></i>
                             </div>
                             <div class="nb-bottom">
@@ -140,7 +144,7 @@
                             <span class="provider">
                                 <img src="assets/BKash-Icon-Logo.wine.svg" alt="bKash" class="payment-logo">
                             </span>
-                            <span class="number" id="bkashNumber">01716897644</span>
+                            <span class="number" id="bkashNumber">Select a hall</span>
                             <i class="ph ph-copy copy-icon" id="bkashCopyIcon" title="Copy Number"></i>
                         </div>
                         <div class="nb-bottom">
@@ -187,20 +191,9 @@
         <div class="whatsapp-contact-section">
             <div class="whatsapp-header">
                 <div class="wa-icon-pulse"><i class="ph-fill ph-whatsapp-logo"></i></div>
-                <h3>Contact us on WhatsApp</h3>
+                <h3 id="whatsappHeaderText">Contact us on WhatsApp</h3>
             </div>
-            <div class="whatsapp-numbers">
-                <a href="https://wa.me/8801716897644" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
-                    <i class="ph-fill ph-whatsapp-logo"></i>
-                    <span>01716897644</span>
-                    <i class="ph-bold ph-caret-right"></i>
-                </a>
-                <a href="https://wa.me/8801568550778" target="_blank" rel="noopener noreferrer" class="whatsapp-number">
-                    <i class="ph-fill ph-whatsapp-logo"></i>
-                    <span>01568550778</span>
-                    <i class="ph-bold ph-caret-right"></i>
-                </a>
-            </div>
+            <div class="whatsapp-numbers" id="whatsappNumbers"></div>
         </div>
     </div>
 
