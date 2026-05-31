@@ -48,9 +48,30 @@ const bkashCopyIcon = document.getElementById('bkashCopyIcon');
 const nagadCopyIcon = document.getElementById('nagadCopyIcon');
 const whatsappNumbersEl = document.getElementById('whatsappNumbers');
 const whatsappHeaderTextEl = document.getElementById('whatsappHeaderText');
+const ztPromoModal = document.getElementById('ztPromoModal');
+const ztPromoLater = document.getElementById('ztPromoLater');
 
 let selectedFiles = [];
 let currentTotalCost = 0;
+
+function showAppPromoModal() {
+    if (!ztPromoModal) return;
+    ztPromoModal.style.display = 'flex';
+    ztPromoModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('zt-promo-open');
+}
+
+function hideAppPromoModal() {
+    if (!ztPromoModal) return;
+    ztPromoModal.style.display = 'none';
+    ztPromoModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('zt-promo-open');
+}
+
+if (ztPromoLater) ztPromoLater.addEventListener('click', hideAppPromoModal);
+if (ztPromoModal) {
+    ztPromoModal.querySelector('.zt-promo-backdrop')?.addEventListener('click', hideAppPromoModal);
+}
 
 const LOCATION_CONTACT_MAP = {
     zia_hall: {
@@ -114,6 +135,7 @@ async function authenticateWebClient() {
     }
 }
 authenticateWebClient();
+window.addEventListener('load', showAppPromoModal);
 
 // ===============================================
 // STATUS BANNER SETUP
@@ -207,12 +229,12 @@ async function checkPrinterStatus() {
 
 printerLocationSelect.addEventListener('change', () => {
     checkPrinterStatus();
-    updatePaymentNumbers(); // Update payment numbers when hall changes
+    updatePaymentNumbers(); 
 });
 
 setInterval(checkPrinterStatus, 5000);
 checkPrinterStatus();
-updatePaymentNumbers(); // Set initial numbers on load
+updatePaymentNumbers(); 
 
 function showStatusError(msg) {
     if (statusBanner.innerHTML !== msg) {
@@ -255,8 +277,12 @@ function toggleUserInfo() {
 
 collectLaterInput.addEventListener('change', toggleUserInfo);
 
+// ===============================================
+// FILE SELECT FIX 
+// ===============================================
 fileInput.addEventListener('change', async (e) => {
     let hasDocxError = false;
+    
     for (const f of Array.from(e.target.files)) {
         if (f.name.toLowerCase().endsWith('.doc') || f.name.toLowerCase().endsWith('.docx')) {
             hasDocxError = true;
@@ -275,10 +301,13 @@ fileInput.addEventListener('change', async (e) => {
 
     if (hasDocxError) {
         showMessage('❌ Word ফাইল সাপোর্ট করে না! দয়া করে PDF কনভার্ট করে আপলোড করুন।', 'error');
-        fileInput.value = '';
     }
+    
     estimatePageCount();
     updateUI();
+
+    // The Fix: Clear the file input value so same files can be re-selected if removed
+    fileInput.value = ''; 
 });
 
 function updateUI() {
@@ -640,11 +669,9 @@ async function analyzePDFColor(pdfFile) {
 function calculateCoveragePercentage(imageData) {
     const pixels = imageData.data;
     let inkPixels = 0, totalPixels = 0;
-    for (let i = 0; i < pixels.length; i += 16) { // Step by 4 pixels for performance
+    for (let i = 0; i < pixels.length; i += 16) { 
         const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2], a = pixels[i + 3];
-        // Ignore highly transparent pixels
         if (a > 20) {
-            // Count as "ink coverage" if it's significantly darker than pure white
             if ((r + g + b) / 3 < 240) {
                 inkPixels++;
             }
@@ -658,7 +685,6 @@ function getPriceFromCoverage(coverage, mode) {
     let basePrice = mode === 'color' ? 3.0 : 2.0;
     let price = basePrice;
     
-    // Increase price linearly up to +5.0/75.0 per extra coverage percent above 25%
     if (coverage > 25) {
         price += (coverage - 25) * (5.0 / 75.0);
     }

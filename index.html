@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zero Touch | Smart Printing</title>
-    <link rel="icon" type="image/x-icon" href="assets/web_fav.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" href="assets/web_fav.png" type="image/png">
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="main-container">
+
         <div class="card main-card">
             <div class="header">
                 <div class="himg">
@@ -70,7 +71,7 @@
                                 <option value="sher_e_bangla_hall">Sher-e-Bangla AK Fajlul Haque Hall</option>
                                 <option value="shahidul_ruet">Shaheed Shahidul Islam Hall</option>
                                 <option value="male01_ruet">Male Hall 01</option>
-                                <option value="shaheed_hadi_hall">Shaheed Osman Hadi Hall(Male Hall 02)</option>
+                                <option value="shaheed_hadi_hall">Shaheed Osman Hadi Hall (Male Hall 02)</option>
                                 <option value="female01_ruet">Female Hall 01</option>
                                 <option value="female02_ruet">Female Hall 02</option>
                                 <option value="selim_ruet">Shaheed LT. Selim Hall</option>
@@ -199,7 +200,34 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    
     <script src="app.js"></script>
-</body>
 
+    <div id="ztPromoModal" class="zt-promo-overlay" aria-hidden="true">
+        <div class="zt-promo-backdrop"></div>
+        <div class="zt-promo-card" role="dialog" aria-modal="true" aria-labelledby="ztPromoTitle">
+            <div class="zt-promo-icon" aria-hidden="true">App</div>
+            <h2 id="ztPromoTitle">Get the ZeroTouch App!</h2>
+            <p class="zt-promo-copy">For the fastest and most secure printing experience on campus.</p>
+            <a
+                class="zt-promo-play-badge"
+                href="https://play.google.com/store/apps/details?id=com.zerotouch.threeonethree&hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Download ZeroTouch from Google Play"
+            >
+                <svg viewBox="0 0 135 40" role="img" aria-hidden="true" focusable="false">
+                    <rect x="0.5" y="0.5" width="134" height="39" rx="8" fill="#000000" stroke="#5f6368"/>
+                    <path d="M37.8 20.1L14.6 7.5c-.7-.4-1.6-.3-2.1.3-.2.3-.4.8-.4 1.3v23.8c0 .5.2 1 .4 1.3.5.6 1.4.7 2.1.3l23.2-12.6c.8-.4 1.2-1.2 1.2-2.1 0-.9-.4-1.7-1.2-2.1z" fill="#34a853"/>
+                    <path d="M14.6 7.5c-.7-.4-1.6-.3-2.1.3-.2.3-.4.8-.4 1.3v23.8c0 .5.2 1 .4 1.3.5.6 1.4.7 2.1.3l13.4-14.5L14.6 7.5z" fill="#4285f4" opacity="0.92"/>
+                    <path d="M14.6 32.5c-.7.4-1.6.3-2.1-.3-.2-.3-.4-.8-.4-1.3v-6.5l8-4.4 7.9 4.3-13.4 8.2z" fill="#fbbc04" opacity="0.95"/>
+                    <path d="M14.6 7.5l13.4 8.2-7.9 4.3-8-4.4V9.1c0-.5.2-1 .4-1.3.5-.6 1.4-.7 2.1-.3z" fill="#ea4335" opacity="0.95"/>
+                    <text x="46" y="14" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="8" font-weight="700" letter-spacing="0.7">GET IT ON</text>
+                    <text x="46" y="27" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700">Google Play</text>
+                </svg>
+            </a>
+            <button type="button" class="zt-promo-later" id="ztPromoLater">Later</button>
+        </div>
+    </div>
+</body>
 </html>
