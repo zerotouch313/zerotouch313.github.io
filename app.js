@@ -2,6 +2,7 @@
 // ZERO TOUCH PRINTING PORTAL - MAIN APPLICATION
 // ===============================================
 
+// ⚠️ Ngrok রিস্টার্ট দিলে এই লিংকটি আপডেট করতে ভুলবেন না
 const CENTRAL_SERVER = 'https://mutilator-goes-twentieth.ngrok-free.dev';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/api/print/upload`; 
 const VERIFY_PAYMENT_URL = `${CENTRAL_SERVER}/verify-payment`;
@@ -118,7 +119,8 @@ async function authenticateWebClient() {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': '69420'
+                'ngrok-skip-browser-warning': '69420',
+                'X-App-Version': 'Web-1.0.0' // ✅ Added Version Header here
             },
             body: JSON.stringify({ email: WEB_GUEST_EMAIL, password: WEB_GUEST_PASS })
         });
@@ -572,7 +574,8 @@ verifyBtn.onclick = async () => {
             method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${currentJWT}`,
-                'ngrok-skip-browser-warning': '69420'
+                'ngrok-skip-browser-warning': '69420',
+                'X-App-Version': 'Web-1.0.0' // ✅ Added Version Header here too
             },
             body: formData
         });
