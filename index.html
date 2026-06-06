@@ -80,7 +80,8 @@
                     </div>
 
                     <div class="upload-area">
-                        <input type="file" id="fileInput" multiple required accept=".pdf,.jpg,.jpeg,.png"
+                        <!-- 🐛 FIX: Removed the 'required' attribute from the file input below -->
+                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png"
                             class="file-input-hidden">
                         <label for="fileInput" class="upload-label">
                             <div class="upload-icon-wrapper">
