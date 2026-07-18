@@ -685,13 +685,43 @@ function calculateCoveragePercentage(imageData) {
 }
 
 function getPriceFromCoverage(coverage, mode) {
-    let basePrice = mode === 'color' ? 3.0 : 2.0;
-    let price = basePrice;
-    
-    if (coverage > 25) {
-        price += (coverage - 25) * (5.0 / 75.0);
+    let bwPrice = 0.0;
+    let colorPrice = 0.0;
+
+    if (coverage >= 0 && coverage <= 40) {
+        // 0% - 40% রেঞ্জ (ফিক্সড)
+        bwPrice = 2.0;
+        colorPrice = 3.0;
+    } 
+    else if (coverage > 40 && coverage <= 75) {
+        // 40% - 75% রেঞ্জ (Linear interpolation)
+        bwPrice = 2.0 + ((coverage - 40) * (4.0 - 2.0) / (75 - 40));
+        colorPrice = 3.0 + ((coverage - 40) * (5.0 - 3.0) / (75 - 40));
+    } 
+    else if (coverage > 75 && coverage <= 80) {
+        // 75% - 80% রেঞ্জ
+        bwPrice = 4.0 + ((coverage - 75) * (4.5 - 4.0) / (80 - 75));
+        colorPrice = 5.0 + ((coverage - 75) * (5.5 - 5.0) / (80 - 75));
+    } 
+    else if (coverage > 80 && coverage <= 90) {
+        // 80% - 90% রেঞ্জ
+        bwPrice = 4.5 + ((coverage - 80) * (5.5 - 4.5) / (90 - 80));
+        colorPrice = 5.5 + ((coverage - 80) * (6.5 - 5.5) / (90 - 80));
+    } 
+    else if (coverage > 90 && coverage <= 100) {
+        // 90% - 100% রেঞ্জ
+        bwPrice = 5.5 + ((coverage - 90) * (7.0 - 5.5) / (100 - 90));
+        colorPrice = 6.5 + ((coverage - 90) * (8.0 - 6.5) / (100 - 90));
+    } 
+    else {
+        // Fallback (Error handle)
+        bwPrice = 2.0;
+        colorPrice = 3.0;
     }
+
+    // ইউজার Color সিলেক্ট করেছে নাকি B/W, সেই অনুযায়ী দাম সেট করা
+    let finalPrice = (mode === 'color') ? colorPrice : bwPrice;
     
-    let maxPrice = mode === 'color' ? 8.0 : 7.0;
-    return Math.min(price, maxPrice);
+    // ২ দশমিক স্থান পর্যন্ত রাউন্ড করে রিটার্ন করা (Float হিসেবে)
+    return parseFloat(finalPrice.toFixed(2));
 }
