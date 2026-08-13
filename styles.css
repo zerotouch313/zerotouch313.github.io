@@ -261,15 +261,17 @@ body.zt-promo-open {
 }
 
 .zt-promo-cta-badge-content {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 14px;
+    justify-content: center;
+    gap: 12px;
 }
 
 .zt-promo-play-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
+    display: block;
 }
 
 .zt-promo-cta-text {
