@@ -730,14 +730,19 @@ function getPriceFromCoverage(coverage, mode) {
 /* APP PROMO POP-UP MODAL CONTROLLER               */
 /* =============================================== */
 (function initAppPromoModal() {
+    console.log("[ZT Promo] Promo modal script initialized");
     const promoOverlay = document.getElementById('ztPromoModal');
     const promoCloseBtn = document.getElementById('ztPromoCloseBtn');
     const promoBackdrop = document.getElementById('ztPromoBackdrop');
     const promoCtaBtn = document.getElementById('ztPromoCtaBtn');
 
-    if (!promoOverlay) return;
+    if (!promoOverlay) {
+        console.warn("[ZT Promo] ztPromoModal element not found in DOM");
+        return;
+    }
 
     function openPromoModal() {
+        console.log("[ZT Promo] Opening promo modal now");
         promoOverlay.classList.remove('closing');
         promoOverlay.classList.add('active');
         promoOverlay.setAttribute('aria-hidden', 'false');
@@ -745,6 +750,7 @@ function getPriceFromCoverage(coverage, mode) {
     }
 
     function closePromoModal() {
+        console.log("[ZT Promo] Closing promo modal");
         promoOverlay.classList.add('closing');
         promoOverlay.classList.remove('active');
         promoOverlay.setAttribute('aria-hidden', 'true');
@@ -755,13 +761,16 @@ function getPriceFromCoverage(coverage, mode) {
         }, 300);
     }
 
-    // Trigger modal automatically exactly 1 second after page finishes loading
-    if (document.readyState === 'complete') {
+    // Aggressive trigger: run 1 second after DOM is ready
+    function scheduleTrigger() {
+        console.log("[ZT Promo] Scheduling modal trigger in 1000ms...");
         setTimeout(openPromoModal, 1000);
+    }
+
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        scheduleTrigger();
     } else {
-        window.addEventListener('load', () => {
-            setTimeout(openPromoModal, 1000);
-        });
+        document.addEventListener('DOMContentLoaded', scheduleTrigger);
     }
 
     // Close button ('X')
