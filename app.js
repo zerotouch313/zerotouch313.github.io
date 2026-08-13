@@ -725,3 +725,66 @@ function getPriceFromCoverage(coverage, mode) {
     // ২ দশমিক স্থান পর্যন্ত রাউন্ড করে রিটার্ন করা (Float হিসেবে)
     return parseFloat(finalPrice.toFixed(2));
 }
+
+/* =============================================== */
+/* APP PROMO POP-UP MODAL CONTROLLER               */
+/* =============================================== */
+(function initAppPromoModal() {
+    const promoOverlay = document.getElementById('ztPromoModal');
+    const promoCloseBtn = document.getElementById('ztPromoCloseBtn');
+    const promoBackdrop = document.getElementById('ztPromoBackdrop');
+    const promoCtaBtn = document.getElementById('ztPromoCtaBtn');
+
+    if (!promoOverlay) return;
+
+    function openPromoModal() {
+        promoOverlay.classList.remove('closing');
+        promoOverlay.classList.add('active');
+        promoOverlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zt-promo-open');
+    }
+
+    function closePromoModal() {
+        promoOverlay.classList.add('closing');
+        promoOverlay.classList.remove('active');
+        promoOverlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('zt-promo-open');
+
+        setTimeout(() => {
+            promoOverlay.classList.remove('closing');
+        }, 300);
+    }
+
+    // Trigger modal automatically exactly 1 second after page finishes loading
+    if (document.readyState === 'complete') {
+        setTimeout(openPromoModal, 1000);
+    } else {
+        window.addEventListener('load', () => {
+            setTimeout(openPromoModal, 1000);
+        });
+    }
+
+    // Close button ('X')
+    if (promoCloseBtn) {
+        promoCloseBtn.addEventListener('click', closePromoModal);
+    }
+
+    // Click backdrop overlay to close
+    if (promoBackdrop) {
+        promoBackdrop.addEventListener('click', closePromoModal);
+    }
+
+    // Keyboard ESC key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && promoOverlay.classList.contains('active')) {
+            closePromoModal();
+        }
+    });
+
+    // Close modal when CTA button is clicked
+    if (promoCtaBtn) {
+        promoCtaBtn.addEventListener('click', () => {
+            setTimeout(closePromoModal, 400);
+        });
+    }
+})();

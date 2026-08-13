@@ -46,7 +46,7 @@ body.zt-promo-open {
 }
 
 /* =============================================== */
-/* App Promo Modal Styles (ISOLATED)               */
+/* App Promo Modal Styles (ULTRA PREMIUM & RESPONSIVE) */
 /* =============================================== */
 .zt-promo-overlay {
     position: fixed;
@@ -54,117 +54,270 @@ body.zt-promo-open {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
     z-index: 999999;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.zt-promo-overlay.show {
-    display: flex;
+.zt-promo-overlay.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 .zt-promo-backdrop {
     position: absolute;
     inset: 0;
-    backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .zt-promo-card {
     position: relative;
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    max-width: 90%;
-    width: 350px;
+    background: #ffffff;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 24px;
+    padding: 32px 24px 28px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.15);
+    z-index: 2;
+    transform: scale(0.88) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    z-index: 1;
+    overflow: hidden;
 }
 
-.zt-promo-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-    margin: 0 auto 16px;
-    display: grid;
-    place-items: center;
-    background: #0f172a;
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    margin-top: 2px;
+.zt-promo-overlay.active .zt-promo-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
 }
 
-.zt-promo-card h2 {
-    font-size: clamp(1.4rem, 3.8vw, 2rem);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    margin-bottom: 12px;
+.zt-promo-overlay.closing {
+    opacity: 0;
+}
+
+.zt-promo-overlay.closing .zt-promo-card {
+    transform: scale(0.92) translateY(8px);
+    opacity: 0;
+}
+
+/* Close Button */
+.zt-promo-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: none;
+    color: #64748b;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 3;
+}
+
+.zt-promo-close-btn:hover {
+    background: #e2e8f0;
     color: #0f172a;
+    transform: rotate(90deg);
 }
 
-.zt-promo-copy {
-    color: var(--text-sub);
-    font-size: 0.98rem;
-    line-height: 1.7;
-    margin-bottom: 22px;
-}
-
-.zt-promo-actions {
+/* Hero Graphic Header */
+.zt-promo-header {
+    width: 100%;
     display: flex;
     justify-content: center;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
+    position: relative;
 }
 
-.zt-promo-play-badge {
-    display: inline-flex;
-    line-height: 0;
-    text-decoration: none;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.zt-promo-hero-graphic {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.zt-promo-play-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.2);
+.zt-promo-logo-badge {
+    position: absolute;
+    top: -6px;
+    background: #ffffff;
+    padding: 6px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+    z-index: 2;
+    border: 2px solid #d1fae5;
 }
 
-.zt-promo-play-badge svg {
-    width: min(70vw, 255px);
-    height: auto;
+.zt-promo-logo-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
     display: block;
 }
 
-.zt-promo-later {
-    border: none;
-    background: transparent;
-    color: var(--text-sub);
-    font-size: 0.95rem;
+.zt-promo-illustration {
+    width: 160px;
+    height: 100px;
+}
+
+.zt-promo-svg-illustration {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Body & Content */
+.zt-promo-body {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zt-promo-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 16px;
+}
+
+/* Benefits List - Strictly Bullet Points, NO Icons/Emojis, Strictly English */
+.zt-promo-benefits-wrapper {
+    width: 100%;
+    background: #f0fdf4;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    text-align: left;
+}
+
+.zt-promo-benefits {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: disc;
+}
+
+.zt-promo-benefits li {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.zt-promo-benefits li::marker {
+    color: var(--primary, #10b981);
+    font-size: 1.1em;
+}
+
+.zt-promo-benefits li:last-child {
+    margin-bottom: 0;
+}
+
+/* Call to Action (CTA) Button */
+.zt-promo-cta-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 14px 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.zt-promo-cta-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.5);
+}
+
+.zt-promo-cta-btn:active {
+    transform: translateY(0);
+}
+
+.zt-promo-cta-badge-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.zt-promo-play-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.zt-promo-cta-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.zt-promo-cta-sub {
+    font-size: 0.68rem;
     font-weight: 700;
-    cursor: pointer;
-    padding: 6px 10px 2px;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    margin-top: 15px;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+    line-height: 1;
+    margin-bottom: 2px;
 }
 
-.zt-promo-later:hover {
-    color: var(--text-main);
+.zt-promo-cta-main {
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
 }
 
+/* Mobile Responsiveness */
 @media (max-width: 480px) {
     .zt-promo-card {
-        width: min(92vw, 350px);
-        padding: 24px 18px;
+        padding: 28px 18px 22px;
+        border-radius: 20px;
     }
 
-    .zt-promo-play-badge svg {
-        width: min(78vw, 255px);
+    .zt-promo-title {
+        font-size: 1.28rem;
+    }
+
+    .zt-promo-benefits-wrapper {
+        padding: 14px 16px;
+    }
+
+    .zt-promo-benefits li {
+        font-size: 0.86rem;
+    }
+
+    .zt-promo-cta-btn {
+        padding: 12px 16px;
+    }
+
+    .zt-promo-cta-main {
+        font-size: 1.02rem;
     }
 }
 
