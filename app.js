@@ -3,7 +3,7 @@
 // ===============================================
 
 // ⚠️ Ngrok রিস্টার্ট দিলে এই লিংকটি আপডেট করতে ভুলবেন না
-const CENTRAL_SERVER = 'https://lying-gong-village.ngrok-free.dev';
+const CENTRAL_SERVER = 'https://hamper-strategy-rockstar.ngrok-free.dev';
 const SERVER_UPLOAD_URL = `${CENTRAL_SERVER}/api/print/upload`; 
 const VERIFY_PAYMENT_URL = `${CENTRAL_SERVER}/verify-payment`;
 
@@ -724,4 +724,4 @@ function getPriceFromCoverage(coverage, mode) {
     
     // ২ দশমিক স্থান পর্যন্ত রাউন্ড করে রিটার্ন করা (Float হিসেবে)
     return parseFloat(finalPrice.toFixed(2));
-}
+}
