@@ -231,7 +231,8 @@ async function checkPrinterStatus() {
 
 printerLocationSelect.addEventListener('change', () => {
     checkPrinterStatus();
-    updatePaymentNumbers(); 
+    updatePaymentNumbers();
+    updateUI();
 });
 
 setInterval(checkPrinterStatus, 5000);
@@ -346,7 +347,7 @@ function updateUI() {
             </div>`;
         }
 
-        const costPerSheet = getPriceFromCoverage(item.colorPercentage, item.printMode);
+        const costPerSheet = getPriceFromCoverage(item.colorPercentage, item.printMode, printerLocationSelect.value);
 
         settingsDiv.innerHTML = `
             ${totalPagesInput}
@@ -684,44 +685,47 @@ function calculateCoveragePercentage(imageData) {
     return totalPixels === 0 ? 0 : (inkPixels / totalPixels) * 100;
 }
 
-function getPriceFromCoverage(coverage, mode) {
-    let bwPrice = 0.0;
-    let colorPrice = 0.0;
+// Per-hall price ceiling/floor router. Unknown/missing locationId always falls
+// back to today's global limits so pricing never breaks for existing halls.
+function getPricingLimits(locationId, isColor) {
+    switch (locationId) {
+        // case 'some_hall_id': return isColor ? { lower: 3.5, upper: 5.5 } : { lower: 2.5, upper: 4.5 };
+        case 'shaheed_hadi_hall': return isColor? {lower: 2.25, upper: 5} : { lower: 1.75, upper: 4}
+        default:
+            return isColor ? { lower: 3.0, upper: 5.0 } : { lower: 2.0, upper: 4.0 };
+    }
+}
+
+function getPriceFromCoverage(coverage, mode, locationId) {
+    const { lower, upper } = getPricingLimits(locationId, mode === 'color');
+    const step = (upper - lower) / 4;
+    let price;
 
     if (coverage >= 0 && coverage <= 40) {
         // 0% - 40% রেঞ্জ (ফিক্সড)
-        bwPrice = 2.0;
-        colorPrice = 3.0;
-    } 
+        price = lower;
+    }
     else if (coverage > 40 && coverage <= 75) {
         // 40% - 75% রেঞ্জ (Linear interpolation)
-        bwPrice = 2.0 + ((coverage - 40) * (4.0 - 2.0) / (75 - 40));
-        colorPrice = 3.0 + ((coverage - 40) * (5.0 - 3.0) / (75 - 40));
-    } 
+        price = lower + ((coverage - 40) * (upper - lower) / (75 - 40));
+    }
     else if (coverage > 75 && coverage <= 80) {
         // 75% - 80% রেঞ্জ
-        bwPrice = 4.0 + ((coverage - 75) * (4.5 - 4.0) / (80 - 75));
-        colorPrice = 5.0 + ((coverage - 75) * (5.5 - 5.0) / (80 - 75));
-    } 
+        price = upper + ((coverage - 75) * step / (80 - 75));
+    }
     else if (coverage > 80 && coverage <= 90) {
         // 80% - 90% রেঞ্জ
-        bwPrice = 4.5 + ((coverage - 80) * (5.5 - 4.5) / (90 - 80));
-        colorPrice = 5.5 + ((coverage - 80) * (6.5 - 5.5) / (90 - 80));
-    } 
+        price = (upper + step) + ((coverage - 80) * (2 * step) / (90 - 80));
+    }
     else if (coverage > 90 && coverage <= 100) {
         // 90% - 100% রেঞ্জ
-        bwPrice = 5.5 + ((coverage - 90) * (7.0 - 5.5) / (100 - 90));
-        colorPrice = 6.5 + ((coverage - 90) * (8.0 - 6.5) / (100 - 90));
-    } 
+        price = (upper + 3 * step) + ((coverage - 90) * (3 * step) / (100 - 90));
+    }
     else {
         // Fallback (Error handle)
-        bwPrice = 2.0;
-        colorPrice = 3.0;
+        price = lower;
     }
 
-    // ইউজার Color সিলেক্ট করেছে নাকি B/W, সেই অনুযায়ী দাম সেট করা
-    let finalPrice = (mode === 'color') ? colorPrice : bwPrice;
-    
     // ২ দশমিক স্থান পর্যন্ত রাউন্ড করে রিটার্ন করা (Float হিসেবে)
-    return parseFloat(finalPrice.toFixed(2));
+    return parseFloat(price.toFixed(2));
 }
