@@ -701,31 +701,22 @@ function getPriceFromCoverage(coverage, mode, locationId) {
     const step = (upper - lower) / 4;
     let price;
 
-    if (coverage >= 0 && coverage <= 40) {
-        // 0% - 40% রেঞ্জ (ফিক্সড)
+    if (coverage <= 40) {
         price = lower;
     }
-    else if (coverage > 40 && coverage <= 75) {
-        // 40% - 75% রেঞ্জ (Linear interpolation)
-        price = lower + ((coverage - 40) * (upper - lower) / (75 - 40));
+    else if (coverage <= 55) {
+        price = lower + step;
     }
-    else if (coverage > 75 && coverage <= 80) {
-        // 75% - 80% রেঞ্জ
-        price = upper + ((coverage - 75) * step / (80 - 75));
+    else if (coverage <= 70) {
+        price = lower + (step * 2);
     }
-    else if (coverage > 80 && coverage <= 90) {
-        // 80% - 90% রেঞ্জ
-        price = (upper + step) + ((coverage - 80) * (2 * step) / (90 - 80));
-    }
-    else if (coverage > 90 && coverage <= 100) {
-        // 90% - 100% রেঞ্জ
-        price = (upper + 3 * step) + ((coverage - 90) * (3 * step) / (100 - 90));
+    else if (coverage <= 85) {
+        price = lower + (step * 3);
     }
     else {
-        // Fallback (Error handle)
-        price = lower;
+        price = upper;
     }
 
     // ২ দশমিক স্থান পর্যন্ত রাউন্ড করে রিটার্ন করা (Float হিসেবে)
-    return parseFloat(price.toFixed(2));
+    return Number(price.toFixed(2));
 }
