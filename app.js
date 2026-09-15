@@ -106,6 +106,10 @@ const LOCATION_CONTACT_MAP = {
     female02_ruet: {
         payment: { bkash: '01568550778', nagad: '01956018657' },
         whatsapp: ['01568550778']
+    },
+    male03_ruet: {
+        payment: { bkash: '01716897644', nagad: '01716897644' },
+        whatsapp: ['01716897644', '01568550778']
     }
 };
 
