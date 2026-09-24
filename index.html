@@ -1,284 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Touch | Smart Printing</title>
-    
+    <meta http-equiv="refresh" content="5;url=https://zerotouch.com.co/">
+    <link rel="canonical" href="https://zerotouch.com.co/">
+    <title>Zero Touch | We've Moved</title>
     <link rel="icon" href="assets/web_fav.png" type="image/png">
-    
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: #16213b;
+            border: 1px solid #1f2c4d;
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+        }
+        .logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 1.3rem;
+            margin: 0 0 12px;
+            color: #10B981;
+        }
+        p {
+            margin: 0 0 20px;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+        .cta {
+            display: inline-block;
+            width: 100%;
+            padding: 14px 20px;
+            background: #10B981;
+            color: #05170f;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .countdown {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+    </style>
 </head>
 <body>
-    <div class="main-container">
-
-        <div class="card main-card">
-            <div class="header">
-                <div class="himg">
-                    <img class="fav" src="assets/web_fav.png" alt="Zero Touch Logo">
-                    <h1>Zero Touch</h1>
-                </div>
-                <p class="subtitle">Remote Document Printing Portal</p>
-
-                <div class="social-links">
-                    <a href="https://www.facebook.com/profile.php?id=61586137062963" target="_blank"
-                        rel="noopener noreferrer" class="social-link facebook">
-                        <i class="ph-fill ph-facebook-logo"></i>
-                        <span>Facebook Page</span>
-                    </a>
-                    <a href="https://forms.gle/SeX6rcnPLSTVzGwy8" target="_blank" rel="noopener noreferrer"
-                        class="social-link google-form">
-                        <i class="ph-fill ph-note"></i>
-                        <span>Feedback Form</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="content">
-                <form id="uploadForm">
-
-                    <div class="pickup-option-container">
-                        <label class="pickup-label">
-                            <input type="checkbox" id="collectLater" class="pickup-checkbox">
-                            <span class="pickup-text">
-                                <strong>Collect Later? (পরে নিবেন?)</strong>
-                                <br><small>এখন ব্যস্ত? পরে এসে কাগজ নিতে চাইলে টিক দিন।</small>
-                            </span>
-                        </label>
-                    </div>
-
-                    <div class="user-info-section" id="userInfoSection" style="display: none;">
-                        <div class="form-group">
-                            <label class="section-label"><i class="ph ph-user"></i> User Name</label>
-                            <input type="text" id="userName" class="ctrl-input full-width"
-                                placeholder="Enter your full name">
-                        </div>
-                        <div class="form-group">
-                            <label class="section-label"><i class="ph ph-identification-card"></i> Student ID</label>
-                            <input type="text" id="studentId" class="ctrl-input full-width"
-                                placeholder="Enter Student ID (e.g., 2003001)">
-                        </div>
-                    </div>
-
-                    <div class="form-group location-group">
-                        <label class="section-label"><i class="ph ph-map-pin"></i> Select Printer Location</label>
-                        <div class="select-wrapper">
-                            <select id="printerLocation" class="ctrl-select premium-select">
-                                <option value="" disabled selected>Select Printer Location</option>
-                                <option value="zia_hall">Shaheed President Ziaur Rahman Hall</option>
-                                <option value="sher_e_bangla_hall">Sher-e-Bangla AK Fajlul Haque Hall</option>
-                                <option value="shahidul_ruet">Shaheed Shahidul Islam Hall</option>
-                                <option value="male01_ruet">Male Hall 01</option>
-                                <option value="shaheed_hadi_hall">Shaheed Osman Hadi Hall (Male Hall 02)</option>
-                                <option value="male03_ruet">Male Hall 03</option>
-                                <option value="female01_ruet">Female Hall 01</option>
-                                <option value="female02_ruet">Female Hall 02</option>
-                                <option value="selim_ruet">Shaheed LT. Selim Hall</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="upload-area">
-                        <!-- 🐛 FIX: Removed the 'required' attribute from the file input below -->
-                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png"
-                            class="file-input-hidden">
-                        <label for="fileInput" class="upload-label">
-                            <div class="upload-icon-wrapper">
-                                <i class="ph ph-cloud-arrow-up icon"></i>
-                            </div>
-                            <span class="main-text">Click to upload files</span>
-                            <span class="sub-text">PDF & Images (Max 10MB)</span>
-                            <span class="sub-text tag-text">A4 Size Only</span>
-                        </label>
-                    </div>
-
-                    <div id="filesList" class="files-list"></div>
-
-                    <div class="cost-summary">
-                        <span class="cost-label">Total Estimated Cost</span>
-                        <span class="cost-amount"><span id="totalCost">0</span> ৳</span>
-                    </div>
-
-                    <div class="actions">
-                        <button type="button" id="clearBtn" class="btn btn-secondary">
-                            <i class="ph ph-trash"></i> Clear
-                        </button>
-                        <button type="submit" id="submitBtn" class="btn btn-primary">
-                            Proceed to Payment <i class="ph ph-arrow-right"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="paymentSection" class="payment-overlay">
-            <div class="payment-card">
-                <div class="modal-header">
-                    <h3><i class="ph ph-wallet"></i> Verify Payment</h3>
-                </div>
-
-                <div class="payment-body">
-                    <p class="instruction-text">Please <strong>Send Money</strong> to one of these numbers:</p>
-
-                    <div id="nagadWrapper">
-                        <div class="number-box nagad">
-                            <div class="nb-top">
-                                <span class="provider">
-                                    <img src="assets/Nagad-Vertical-Logo.wine.svg" alt="Nagad" class="payment-logo">
-                                </span>
-                                <span class="number" id="nagadNumber">Select a hall</span>
-                                <i class="ph ph-copy copy-icon" id="nagadCopyIcon" title="Copy Number"></i>
-                            </div>
-                            <div class="nb-bottom">
-                                <small>চার্জ এড়াতে নম্বরটি 'Priyo' করে নিন</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="nagadLowAmountMsg" class="low-amount-warning">
-                        <i class="ph-fill ph-warning-circle"></i>
-                        <span>১০ টাকার কম হলে নগদ এ সেন্ড মানি করা যায় না। অনুগ্রহ করে বিকাশ ব্যবহার করুন।</span>
-                    </div>
-
-                    <div class="number-box bkash">
-                        <div class="nb-top">
-                            <span class="provider">
-                                <img src="assets/BKash-Icon-Logo.wine.svg" alt="bKash" class="payment-logo">
-                            </span>
-                            <span class="number" id="bkashNumber">Select a hall</span>
-                            <i class="ph ph-copy copy-icon" id="bkashCopyIcon" title="Copy Number"></i>
-                        </div>
-                        <div class="nb-bottom">
-                            <small>ফ্রি সেন্ড মানি করতে নম্বরটি 'Priyo' করুন</small>
-                        </div>
-                    </div>
-
-                    <div class="warning-box">
-                        <div class="warning-icon"><i class="ph ph-warning-circle"></i></div>
-                        <div class="warning-text">
-                            <strong>IMPORTANT:</strong> Pay exactly <strong class="highlight-amt"><span
-                                    id="payAmountDisplay">0</span> Tk</strong>.
-                            <br>Do not pay less or more.
-                        </div>
-                    </div>
-
-                    <div class="payment-inputs-row">
-                        <div class="input-wrapper" style="width: 100%;">
-                            <label>Transaction ID (TrxID)</label>
-                            <input type="text" id="trxId" class="ctrl-input trx-input" placeholder="e.g. 9G7HG..."
-                                required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button class="pay-btn verify-btn" id="verifyBtn">
-                        <i class="ph-bold ph-check-circle"></i> Verify & Proceed
-                    </button>
-                    <button class="btn-text" id="cancelPayment">Cancel</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="loading" class="loading-overlay">
-            <div class="spinner-wrapper">
-                <div class="spinner"></div>
-            </div>
-            <p>Sending File to Printer...</p>
-        </div>
-
-        <div id="message" class="toast"></div>
-
-        <div class="whatsapp-contact-section">
-            <div class="whatsapp-header">
-                <div class="wa-icon-pulse"><i class="ph-fill ph-whatsapp-logo"></i></div>
-                <h3 id="whatsappHeaderText">Contact us on WhatsApp</h3>
-            </div>
-            <div class="whatsapp-numbers" id="whatsappNumbers"></div>
-        </div>
+    <div class="card">
+        <img class="logo" src="assets/web_fav.png" alt="Zero Touch" onerror="this.remove()">
+        <h1>আমরা নতুন ঠিকানায় চলে গেছি</h1>
+        <p>Zero Touch এখন আরও ভালো ও নতুন সাইটে চলে এসেছে। নিচের বাটনে ক্লিক করে নতুন সাইটে যান।</p>
+        <a class="cta" href="https://zerotouch.com.co/">নতুন সাইটে যান</a>
+        <p class="countdown" id="countdown"></p>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    
-    <script src="app.js"></script>
-
-    <!-- App Promo Pop-up Modal -->
-    <div id="ztPromoModal" class="zt-promo-overlay" aria-hidden="true">
-        <div class="zt-promo-backdrop" id="ztPromoBackdrop"></div>
-        <div class="zt-promo-card" role="dialog" aria-modal="true" aria-labelledby="ztPromoTitle">
-            <button type="button" class="zt-promo-close-btn" id="ztPromoCloseBtn" aria-label="Close promo modal">
-                <i class="ph ph-x"></i>
-            </button>
-            
-            <div class="zt-promo-header">
-                <div class="zt-promo-hero-graphic">
-                    <div class="zt-promo-logo-badge">
-                        <img src="assets/web_fav.png" alt="Zero Touch Logo" class="zt-promo-logo-img">
-                    </div>
-                    <div class="zt-promo-illustration">
-                        <svg viewBox="0 0 160 110" fill="none" xmlns="http://www.w3.org/2000/svg" class="zt-promo-svg-illustration">
-                            <!-- Mobile Phone -->
-                            <rect x="52" y="10" width="56" height="90" rx="10" fill="#1E293B" stroke="#334155" stroke-width="2"/>
-                            <rect x="57" y="18" width="46" height="74" rx="5" fill="#0F172A"/>
-                            <!-- Phone Screen App UI Header -->
-                            <rect x="62" y="24" width="36" height="12" rx="3" fill="#10B981" fill-opacity="0.2"/>
-                            <rect x="65" y="28" width="20" height="4" rx="2" fill="#10B981"/>
-                            <!-- Document emerging from phone -->
-                            <g class="zt-svg-doc-group">
-                                <rect x="61" y="42" width="38" height="44" rx="4" fill="#FFFFFF"/>
-                                <rect x="66" y="48" width="20" height="3" rx="1.5" fill="#10B981"/>
-                                <rect x="66" y="55" width="28" height="2.5" rx="1.2" fill="#94A3B8"/>
-                                <rect x="66" y="61" width="24" height="2.5" rx="1.2" fill="#94A3B8"/>
-                                <rect x="66" y="67" width="28" height="2.5" rx="1.2" fill="#94A3B8"/>
-                                <circle cx="83" cy="76" r="4" fill="#10B981"/>
-                                <path d="M81.5 76L82.5 77L84.5 75" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </g>
-                            <!-- Wireless printing signal waves -->
-                            <path d="M38 35C33 40 33 50 38 55" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M44 40C41 43 41 47 44 50" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
-                            <path d="M122 35C127 40 127 50 122 55" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M116 40C119 43 119 47 116 50" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="zt-promo-body">
-                <h2 id="ztPromoTitle" class="zt-promo-title">Welcome to the Zero Touch App!</h2>
-                
-                <div class="zt-promo-benefits-wrapper">
-                    <ul class="zt-promo-benefits">
-                        <li>Exclusive offers & discounts</li>
-                        <li>Hassle-free, 1-click fast printing</li>
-                        <li>No hassle of repeated payments with Smart Wallet integration</li>
-                    </ul>
-                </div>
-
-                <a href="https://play.google.com/store/apps/details?id=com.zerotouch.threeonethree" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   class="zt-promo-cta-btn" 
-                   id="ztPromoCtaBtn">
-                    <div class="zt-promo-cta-badge-content">
-                        <svg class="zt-promo-play-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3.60938 1.81445C3.21338 2.18945 3 2.70345 3 3.33845V20.6615C3 21.2965 3.21338 21.8105 3.60938 22.1855L3.69338 22.2595L13.3444 12.6085V12.3915L3.69338 2.7405L3.60938 1.81445Z" fill="#00D2FF"/>
-                            <path d="M16.5623 15.827L13.3442 12.609V12.391L16.5623 9.17305L16.6463 9.22205L20.4573 11.389C21.5433 12.006 21.5433 13.014 20.4573 13.631L16.6463 15.778L16.5623 15.827Z" fill="#FFD900"/>
-                            <path d="M16.6462 15.7785L13.3442 12.4765L3.60938 22.1855C3.96638 22.5635 4.57138 22.6185 5.25338 22.2315L16.6462 15.7785Z" fill="#FF3A44"/>
-                            <path d="M16.6462 9.22152L5.25338 2.76852C4.57138 2.38152 3.96638 2.43652 3.60938 2.81452L13.3442 12.5235L16.6462 9.22152Z" fill="#00E676"/>
-                        </svg>
-                        <div class="zt-promo-cta-text">
-                            <span class="zt-promo-cta-sub">GET IT ON GOOGLE PLAY</span>
-                            <span class="zt-promo-cta-main">Download App Now</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <script src="zt-promo.js"></script>
+    <script>
+        var s = 5;
+        var el = document.getElementById('countdown');
+        function tick() {
+            el.textContent = s + ' সেকেন্ডের মধ্যে নিয়ে যাওয়া হবে…';
+            if (s <= 0) return;
+            s -= 1;
+            setTimeout(tick, 1000);
+        }
+        tick();
+    </script>
 </body>
 </html>
